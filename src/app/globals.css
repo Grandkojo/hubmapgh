@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-syne: 'Syne', sans-serif;
+  --font-dm-sans: 'DM Sans', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0D0D0D;
+  color: #E8E8E8;
+  font-family: var(--font-dm-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0D0D0D;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #F4B942;
+}
+
+/* Leaflet map dark override */
+.leaflet-container {
+  background: #161616 !important;
+  border-radius: 12px;
+}
+.leaflet-tile-pane {
+  filter: brightness(0.7) saturate(0.8);
+}
+.leaflet-popup-content-wrapper {
+  background: #1E1E1E !important;
+  color: #E8E8E8 !important;
+  border: 1px solid #333 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+.leaflet-popup-tip {
+  background: #1E1E1E !important;
+}
+.leaflet-popup-close-button {
+  color: #999 !important;
+}
+
+/* Card stagger animation */
+.hub-card {
+  opacity: 0;
+  animation: fadeUp 0.4s ease forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Ghana flag accent line */
+.ghana-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #CF0A0A 33.33%, #F4B942 33.33% 66.66%, #006B3F 66.66%);
+}
