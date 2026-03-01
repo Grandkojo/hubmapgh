@@ -21,6 +21,7 @@ function CustomDropdown({ label, options, selected, onSelect, icon }: {
   icon?: React.ReactNode
 }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [search, setSearch] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -33,12 +34,17 @@ function CustomDropdown({ label, options, selected, onSelect, icon }: {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  const filteredOptions = options.filter(opt =>
+    opt.toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] mb-1.5 font-body font-bold ml-1">
         {label}
       </p>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`
           w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium font-body transition-all duration-300
@@ -46,14 +52,14 @@ function CustomDropdown({ label, options, selected, onSelect, icon }: {
           hover:border-zinc-500 text-zinc-300 group
         `}
       >
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-2 truncate">
           {icon}
           <span className={selected !== 'All' && selected !== 'All Focus Areas' ? 'text-ghana-gold' : ''}>
             {selected === 'All' ? `Any ${label}` : selected}
           </span>
         </span>
         <svg
-          className={`w-4 h-4 text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180 text-ghana-gold' : ''}`}
+          className={`w-4 h-4 text-zinc-500 transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180 text-ghana-gold' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -61,24 +67,42 @@ function CustomDropdown({ label, options, selected, onSelect, icon }: {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 p-1.5 bg-surface-card border border-surface-border rounded-xl shadow-2xl z-[100] max-h-60 overflow-y-auto backdrop-blur-xl animate-in fade-in zoom-in duration-200">
-          {options.map(option => (
-            <button
-              key={option}
-              onClick={() => {
-                onSelect(option)
-                setIsOpen(false)
-              }}
-              className={`
-                w-full text-left px-3 py-2 rounded-lg text-sm font-body transition-colors
-                ${(selected === option || (selected === 'All' && option === 'All'))
-                  ? 'bg-ghana-gold/10 text-ghana-gold'
-                  : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'}
-              `}
-            >
-              {option === 'All' && label === 'Focus' ? 'All Focus Areas' : option}
-            </button>
-          ))}
+        <div className="absolute top-full left-0 right-0 mt-2 p-1.5 bg-surface-card border border-surface-border rounded-xl shadow-2xl z-[100] backdrop-blur-xl animate-in fade-in zoom-in duration-200">
+          <div className="p-1 mb-1 border-b border-surface-border/50">
+            <input
+              autoFocus
+              type="text"
+              placeholder={`Search ${label.toLowerCase()}...`}
+              className="w-full bg-surface border border-surface-border/50 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-zinc-700 outline-none focus:border-ghana-gold/30 transition-all"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto custom-scrollbar">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map(option => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    onSelect(option)
+                    setIsOpen(false)
+                    setSearch('')
+                  }}
+                  className={`
+                    w-full text-left px-3 py-2 rounded-lg text-sm font-body transition-colors
+                    ${(selected === option || (selected === 'All' && option === 'All'))
+                      ? 'bg-ghana-gold/10 text-ghana-gold'
+                      : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'}
+                  `}
+                >
+                  {option === 'All' && label === 'Focus' ? 'All Focus Areas' : option}
+                </button>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-[10px] text-zinc-600 italic text-center">No results found</div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import ConfirmModal from '@/components/ConfirmModal'
+import FormSelect from '@/components/FormSelect'
+import FormMultiSelect from '@/components/FormMultiSelect'
 
 export default function SubmitHubPage() {
     const router = useRouter()
@@ -12,6 +14,9 @@ export default function SubmitHubPage() {
     const [error, setError] = useState('')
     const [locating, setLocating] = useState(false)
 
+    const [allCities, setAllCities] = useState<string[]>([])
+    const [allTags, setAllTags] = useState<string[]>([])
+
     const [formData, setFormData] = useState({
         name: '',
         city: '',
@@ -19,10 +24,26 @@ export default function SubmitHubPage() {
         description: '',
         website: '',
         contact: '',
-        tags: '',
+        tags: [] as string[],
         lat: '',
         lng: ''
     })
+
+    useEffect(() => {
+        async function fetchMetadata() {
+            try {
+                const res = await fetch('/api/hubs')
+                const data = await res.json()
+                if (data.metadata) {
+                    setAllCities(data.metadata.cities || [])
+                    setAllTags(data.metadata.focusAreas || [])
+                }
+            } catch (err) {
+                console.error('Failed to load metadata:', err)
+            }
+        }
+        fetchMetadata()
+    }, [])
 
     const detectLocation = () => {
         setLocating(true)
@@ -59,7 +80,7 @@ export default function SubmitHubPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
-                    tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+                    tags: formData.tags,
                     coordinates: {
                         lat: parseFloat(formData.lat) || 0,
                         lng: parseFloat(formData.lng) || 0
@@ -71,7 +92,7 @@ export default function SubmitHubPage() {
 
             if (response.ok) {
                 setShowSuccess(true)
-                setFormData({ name: '', city: '', neighborhood: '', description: '', website: '', contact: '', tags: '', lat: '', lng: '' })
+                setFormData({ name: '', city: '', neighborhood: '', description: '', website: '', contact: '', tags: [], lat: '', lng: '' })
             } else {
                 setError(data.error || 'Something went wrong')
             }
@@ -131,17 +152,14 @@ export default function SubmitHubPage() {
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                             />
                         </div>
-                        <div className="space-y-2 sm:space-y-3">
-                            <label className="text-[10px] sm:text-sm font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">City *</label>
-                            <input
-                                required
-                                type="text"
-                                placeholder="e.g. Accra"
-                                className="w-full bg-surface border border-surface-border rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-lg font-body focus:border-ghana-gold/50 outline-none transition-all placeholder:text-zinc-700"
-                                value={formData.city}
-                                onChange={e => setFormData({ ...formData, city: e.target.value })}
-                            />
-                        </div>
+                        <FormSelect
+                            required
+                            label="City"
+                            placeholder="Select a city"
+                            options={allCities}
+                            value={formData.city}
+                            onChange={val => setFormData({ ...formData, city: val })}
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
@@ -213,16 +231,13 @@ export default function SubmitHubPage() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-                        <div className="space-y-2 sm:space-y-3">
-                            <label className="text-[10px] sm:text-sm font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Tags (comma separated)</label>
-                            <input
-                                type="text"
-                                placeholder="Incubator, Training"
-                                className="w-full bg-surface border border-surface-border rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-lg font-body focus:border-ghana-gold/50 outline-none transition-all placeholder:text-zinc-700"
-                                value={formData.tags}
-                                onChange={e => setFormData({ ...formData, tags: e.target.value })}
-                            />
-                        </div>
+                        <FormMultiSelect
+                            label="Tags / Focus Areas"
+                            placeholder="Select tags"
+                            options={allTags}
+                            selected={formData.tags}
+                            onChange={tags => setFormData({ ...formData, tags })}
+                        />
                         <div className="space-y-2 sm:space-y-3">
                             <label className="text-[10px] sm:text-sm font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Contact Email/Phone</label>
                             <input
