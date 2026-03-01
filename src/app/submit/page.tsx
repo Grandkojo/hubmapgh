@@ -32,7 +32,7 @@ export default function SubmitHubPage() {
     useEffect(() => {
         async function fetchMetadata() {
             try {
-                const res = await fetch('/api/hubs')
+                const res = await fetch('/api/hubs', { cache: 'no-store' })
                 const data = await res.json()
                 if (data.metadata) {
                     setAllCities(data.metadata.cities || [])

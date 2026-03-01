@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 // In-memory cache for the server instance
 let serverCache: {
@@ -52,7 +52,7 @@ export function updateServerCache(hubs: any[], metadata: any, lastUpdated: strin
 }
 
 export async function invalidateServerCache() {
-    // Clear local memory
+    // Clear local memory immediately
     serverCache = {
         hubs: null,
         metadata: null,
@@ -61,12 +61,12 @@ export async function invalidateServerCache() {
 
     // Update Firestore to notify other instances
     try {
-        const { updateDoc, doc } = await import('firebase/firestore');
         const filtersRef = doc(db, 'metadata', 'filters');
         await updateDoc(filtersRef, {
             lastUpdated: new Date().toISOString()
         });
     } catch (error) {
+        // Log but don't crash the admin route if sync fails
         console.error('Failed to sync cache invalidation to Firestore:', error);
     }
 }

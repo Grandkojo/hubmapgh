@@ -3,6 +3,7 @@ import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://hubmapgh.vercel.app'),
   title: 'Hub Map GH | Ghana Tech Ecosystem Directory',
   description: "The definitive community-maintained directory of tech spaces powering Ghana's innovation ecosystem. Built with Gemini AI and Firebase.",
   openGraph: {

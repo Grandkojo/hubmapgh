@@ -3,6 +3,8 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc, collection, getDocs, writeBatch, query, where } from 'firebase/firestore';
 import { invalidateServerCache } from '@/lib/cache';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const docRef = doc(db, 'metadata', 'filters');

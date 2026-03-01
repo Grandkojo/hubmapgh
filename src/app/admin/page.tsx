@@ -77,7 +77,7 @@ export default function AdminDashboard() {
         })
 
         // Fetch metadata
-        fetch('/api/admin/metadata')
+        fetch('/api/admin/metadata', { cache: 'no-store' })
             .then(res => res.json())
             .then(data => {
                 setCities(data.cities || [])

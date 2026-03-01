@@ -3,6 +3,8 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { getCachedData, updateServerCache } from '@/lib/cache';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const cacheStatus = await getCachedData();

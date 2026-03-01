@@ -31,7 +31,7 @@ export default function HomePage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch('/api/hubs')
+        const res = await fetch('/api/hubs', { cache: 'no-store' })
         const data = await res.json()
         if (data.hubs) setHubs(data.hubs)
         if (data.metadata) setMetadata(data.metadata)
