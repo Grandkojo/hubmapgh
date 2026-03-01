@@ -17,7 +17,7 @@ export async function PATCH(req: NextRequest) {
             verifiedAt: new Date().toISOString(),
         });
 
-        invalidateServerCache();
+        await invalidateServerCache();
 
         return NextResponse.json({ message: `Hub ${verified ? 'verified' : 'unverified'} successfully` });
     } catch (error: any) {
@@ -37,7 +37,7 @@ export async function DELETE(req: NextRequest) {
 
         await deleteDoc(doc(db, 'hubs', id));
 
-        invalidateServerCache();
+        await invalidateServerCache();
 
         return NextResponse.json({ message: 'Hub deleted successfully' });
     } catch (error: any) {

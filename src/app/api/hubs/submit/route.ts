@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { invalidateServerCache } from '@/lib/cache';
 
 export async function POST(req: NextRequest) {
     try {
@@ -28,6 +29,8 @@ export async function POST(req: NextRequest) {
         };
 
         const docRef = await addDoc(collection(db, 'hubs'), hubData);
+
+        await invalidateServerCache();
 
         return NextResponse.json({ id: docRef.id, message: 'Hub submitted for review!' }, { status: 201 });
     } catch (error: any) {

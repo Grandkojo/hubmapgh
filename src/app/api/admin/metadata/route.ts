@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
             lastUpdated
         });
 
-        invalidateServerCache();
+        await invalidateServerCache();
 
         return NextResponse.json({ message: 'Metadata and hubs updated successfully', lastUpdated });
     } catch (error: any) {

@@ -28,7 +28,7 @@ export async function PATCH(req: NextRequest) {
             updatedAt: new Date().toISOString()
         });
 
-        invalidateServerCache();
+        await invalidateServerCache();
         return NextResponse.json({ message: 'Hub updated successfully' });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -42,7 +42,7 @@ export async function DELETE(req: NextRequest) {
         if (!id) return NextResponse.json({ error: 'Missing hub ID' }, { status: 400 });
 
         await deleteDoc(doc(db, 'hubs', id));
-        invalidateServerCache();
+        await invalidateServerCache();
         return NextResponse.json({ message: 'Hub deleted successfully' });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
