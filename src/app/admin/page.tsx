@@ -5,6 +5,8 @@ import { db } from '@/lib/firebase'
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore'
 import Link from 'next/link'
 import ConfirmModal from '@/components/ConfirmModal'
+import FormSelect from '@/components/FormSelect'
+import FormMultiSelect from '@/components/FormMultiSelect'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 
@@ -417,13 +419,12 @@ export default function AdminDashboard() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-                                <div className="space-y-2 sm:space-y-3">
-                                    <label className="text-[10px] sm:text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">City</label>
-                                    <select className="w-full bg-surface border border-surface-border rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-lg font-body focus:border-ghana-gold outline-none transition-all appearance-none"
-                                        value={editForm.city} onChange={e => setEditForm({ ...editForm, city: e.target.value })}>
-                                        {cities.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                </div>
+                                <FormSelect
+                                    label="City"
+                                    options={cities}
+                                    value={editForm.city}
+                                    onChange={val => setEditForm({ ...editForm, city: val })}
+                                />
                                 <div className="space-y-2 sm:space-y-3">
                                     <label className="text-[10px] sm:text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Neighborhood</label>
                                     <input type="text" className="w-full bg-surface border border-surface-border rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-lg font-body focus:border-ghana-gold outline-none transition-all"
@@ -453,11 +454,13 @@ export default function AdminDashboard() {
                                     value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
                             </div>
 
-                            <div className="space-y-2 sm:space-y-3">
-                                <label className="text-[10px] sm:text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Tags (comma separated)</label>
-                                <input type="text" className="w-full bg-surface border border-surface-border rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-lg font-body focus:border-ghana-gold outline-none transition-all"
-                                    value={Array.isArray(editForm.tags) ? editForm.tags.join(', ') : ''} onChange={e => setEditForm({ ...editForm, tags: e.target.value.split(',').map(s => s.trim()) })} />
-                            </div>
+                            <FormMultiSelect
+                                label="Tags / Focus Areas"
+                                placeholder="Select tags"
+                                options={focusAreas}
+                                selected={editForm.tags || []}
+                                onChange={tags => setEditForm({ ...editForm, tags })}
+                            />
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8 sm:mt-12 pb-4">
