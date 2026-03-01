@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import hubsData from '../../../../data/hubs.json'
+import { db } from '@/lib/firebase'
+import { collection, query, where, getDocs, doc, getDoc, setDoc, increment, serverTimestamp } from 'firebase/firestore'
+import { getCachedData, updateServerCache } from '@/lib/cache'
+import crypto from 'crypto'
 
 export const runtime = 'nodejs'
 
@@ -10,22 +13,77 @@ interface RecommendationResult {
   score: number
 }
 
-// Minimal hub context — keep token count low
-const HUB_CONTEXT = hubsData.map(h => ({
-  id: h.id,
-  name: h.name,
-  city: h.city,
-  neighborhood: h.neighborhood,
-  tags: h.tags,
-  description: h.description,
-  verified: h.verified,
-}))
+export async function POST(req: NextRequest) {
+  try {
+    const { query: userQuery } = await req.json()
 
-const SYSTEM_PROMPT = `You are a helpful assistant for Hub Map GH — a directory of Ghana's tech ecosystem.
+    if (!userQuery || typeof userQuery !== 'string' || userQuery.trim().length < 3) {
+      return NextResponse.json(
+        { error: 'Query must be at least 3 characters.' },
+        { status: 400 }
+      )
+    }
+
+    // Rate Limiting & Data Fetching (Concurrent)
+    const ip = req.headers.get('x-forwarded-for') || 'anonymous'
+    const ipHash = crypto.createHash('md5').update(ip).digest('hex')
+    const today = new Date().toISOString().split('T')[0]
+    const limitDocRef = doc(db, 'usage_limits', `${ipHash}_${today}`)
+
+    const [limitDoc, cacheStatus] = await Promise.all([
+      getDoc(limitDocRef),
+      getCachedData()
+    ])
+
+    const currentCount = limitDoc.exists() ? limitDoc.data().count : 0
+
+    if (currentCount >= 3) {
+      return NextResponse.json(
+        { error: "Daily limit reached. You've used your 3 AI recommendations for today. Come back tomorrow!" },
+        { status: 429 }
+      )
+    }
+
+    if (userQuery.trim().length > 300) {
+      return NextResponse.json(
+        { error: 'Query too long. Keep it under 300 characters.' },
+        { status: 400 }
+      )
+    }
+
+    // Get hubs from cache or fetch if stale
+    let hubsData: any[] = []
+    if (cacheStatus && cacheStatus.fromCache) {
+      hubsData = cacheStatus.hubs.map((h: any) => ({
+        id: h.id,
+        name: h.name,
+        city: h.city,
+        neighborhood: h.neighborhood,
+        tags: h.tags,
+        description: h.description,
+      }))
+    } else {
+      const hubsSnapshot = await getDocs(query(collection(db, 'hubs'), where('verified', '==', true)))
+      hubsData = hubsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.get('name'),
+        city: doc.get('city'),
+        neighborhood: doc.get('neighborhood'),
+        tags: doc.get('tags'),
+        description: doc.get('description'),
+      }))
+
+      // Update cache if we have metadata
+      if (cacheStatus) {
+        updateServerCache(hubsData, cacheStatus.metadata, cacheStatus.currentLastUpdated!)
+      }
+    }
+
+    const systemPrompt = `You are a helpful assistant for Hub Map GH — a directory of Ghana's tech ecosystem.
 Your job is to recommend the best matching tech hubs based on what the user is looking for.
 
 You have access to this list of hubs:
-${JSON.stringify(HUB_CONTEXT, null, 2)}
+${JSON.stringify(hubsData, null, 2)}
 
 Rules:
 - Return ONLY valid JSON. No markdown, no explanation outside the JSON.
@@ -39,25 +97,7 @@ Response format (strict JSON array):
 [
   { "hubId": "...", "reason": "...", "score": 95 },
   { "hubId": "...", "reason": "...", "score": 80 }
-]`
-
-export async function POST(req: NextRequest) {
-  try {
-    const { query } = await req.json()
-
-    if (!query || typeof query !== 'string' || query.trim().length < 3) {
-      return NextResponse.json(
-        { error: 'Query must be at least 3 characters.' },
-        { status: 400 }
-      )
-    }
-
-    if (query.trim().length > 300) {
-      return NextResponse.json(
-        { error: 'Query too long. Keep it under 300 characters.' },
-        { status: 400 }
-      )
-    }
+]`;
 
     const apiKey = process.env.GEMINI_API_KEY
     if (!apiKey) {
@@ -76,7 +116,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    const prompt = `${SYSTEM_PROMPT}\n\nUser query: "${query.trim()}"`
+    const prompt = `${systemPrompt}\n\nUser query: "${userQuery.trim()}"`
     const result = await model.generateContent(prompt)
     const response = result.response
     const text = response.text().trim()
@@ -106,7 +146,18 @@ export async function POST(req: NextRequest) {
       .filter(r => validIds.has(r.hubId) && r.reason && typeof r.score === 'number')
       .slice(0, 2) // Limit to top 2 matches as requested
 
-    return NextResponse.json({ recommendations: validated })
+    // If successful, increment the usage count
+    await setDoc(limitDocRef, {
+      count: increment(1),
+      lastUsed: serverTimestamp(),
+      ipHash: ipHash,
+      date: today
+    }, { merge: true })
+
+    return NextResponse.json({
+      recommendations: validated,
+      usageRemaining: 3 - (currentCount + 1)
+    })
 
   } catch (err: any) {
     console.error('Recommend API error:', err)

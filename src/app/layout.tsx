@@ -1,15 +1,9 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { AuthProvider } from '@/context/AuthContext'
 
 export const metadata: Metadata = {
-  title: 'Hub Map GH — Ghana Tech Ecosystem Directory',
-  description: 'Discover co-working spaces, incubators, accelerators, and makerspaces across Ghana. The definitive map of the Ghanaian tech ecosystem.',
-  keywords: 'Ghana tech hubs, Accra startups, Kumasi tech, African innovation, co-working Ghana',
-  openGraph: {
-    title: 'Hub Map GH',
-    description: 'The definitive directory of Ghana\'s tech ecosystem.',
-    type: 'website',
-  },
+  // ... existing metadata ...
 }
 
 export default function RootLayout({
@@ -19,7 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   )
 }

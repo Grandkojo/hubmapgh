@@ -5,12 +5,19 @@
     "city": "Accra",
     "neighborhood": "East Legon",
     "description": "One of Africa's premier tech entrepreneurship programs offering training, seed funding, and a pan-African network for software-focused startups.",
-    "tags": ["Incubator", "Seed Fund", "Training"],
+    "tags": [
+      "Incubator",
+      "Seed Fund",
+      "Training"
+    ],
     "website": "https://meltwater.org",
-    "coordinates": { "lat": 5.6356, "lng": -0.1638 },
+    "coordinates": {
+      "lat": 5.6356,
+      "lng": -0.1638
+    },
     "verified": true,
     "founded": 2008,
-    "contact": ""
+    "contact": "info@meltwater.org"
   },
   {
     "id": "impact-hub-accra",
@@ -18,12 +25,19 @@
     "city": "Accra",
     "neighborhood": "Osu",
     "description": "A global network node for social impact startups with a makerspace, event hall, and community cafe. Part of 100+ hubs worldwide.",
-    "tags": ["Co-working", "Social Impact", "Makerspace"],
+    "tags": [
+      "Co-working",
+      "Social Impact",
+      "Makerspace"
+    ],
     "website": "https://accra.impacthub.net",
-    "coordinates": { "lat": 5.5558, "lng": -0.1857 },
+    "coordinates": {
+      "lat": 5.5558,
+      "lng": -0.1857
+    },
     "verified": true,
     "founded": 2013,
-    "contact": ""
+    "contact": "accra@impacthub.net"
   },
   {
     "id": "ispace-accra",
@@ -31,12 +45,19 @@
     "city": "Accra",
     "neighborhood": "East Legon",
     "description": "Capacity building and community hub focused on women in tech, social entrepreneurship, and developer education.",
-    "tags": ["Capacity Building", "Women in Tech", "Community"],
+    "tags": [
+      "Capacity Building",
+      "Women in Tech",
+      "Community"
+    ],
     "website": "https://ispacegh.com",
-    "coordinates": { "lat": 5.6421, "lng": -0.1530 },
+    "coordinates": {
+      "lat": 5.6421,
+      "lng": -0.1530
+    },
     "verified": true,
     "founded": 2011,
-    "contact": ""
+    "contact": "info@ispacegh.com"
   },
   {
     "id": "ghana-tech-lab",
@@ -44,12 +65,20 @@
     "city": "Accra",
     "neighborhood": "Adabraka",
     "description": "Government-backed innovation lab with AI, Robotics, and Cybersecurity labs supporting the national digital economy agenda.",
-    "tags": ["AI", "Robotics", "Cybersecurity", "Government"],
+    "tags": [
+      "AI",
+      "Robotics",
+      "Cybersecurity",
+      "Government"
+    ],
     "website": "https://ghanatechlab.com",
-    "coordinates": { "lat": 5.5621, "lng": -0.2076 },
+    "coordinates": {
+      "lat": 5.5621,
+      "lng": -0.2076
+    },
     "verified": true,
     "founded": 2019,
-    "contact": ""
+    "contact": "info@ghanatechlab.com"
   },
   {
     "id": "innohub-accra",
@@ -57,12 +86,19 @@
     "city": "Accra",
     "neighborhood": "Airport Residential",
     "description": "A startup incubator and co-working space serving entrepreneurs across fintech, health, and agritech sectors.",
-    "tags": ["Incubator", "Co-working", "Fintech"],
+    "tags": [
+      "Incubator",
+      "Co-working",
+      "Fintech"
+    ],
     "website": "https://innohub.com.gh",
-    "coordinates": { "lat": 5.6052, "lng": -0.1717 },
-    "verified": false,
+    "coordinates": {
+      "lat": 5.6052,
+      "lng": -0.1717
+    },
+    "verified": true,
     "founded": 2015,
-    "contact": ""
+    "contact": "info@innohub.com.gh"
   },
   {
     "id": "alx-accra",
@@ -70,12 +106,20 @@
     "city": "Accra",
     "neighborhood": "Airport City",
     "description": "Pan-African tech training hub at One Airport Square (4th Floor) offering world-class software engineering, data science, and AI programmes. Alumni network spans 50+ African countries.",
-    "tags": ["Training", "AI", "Software Engineering", "Pan-African"],
+    "tags": [
+      "Training",
+      "AI",
+      "Software Engineering",
+      "Pan-African"
+    ],
     "website": "https://alxafrica.com",
-    "coordinates": { "lat": 5.6037, "lng": -0.1718 },
+    "coordinates": {
+      "lat": 5.6037,
+      "lng": -0.1718
+    },
     "verified": true,
     "founded": 2021,
-    "contact": ""
+    "contact": "support@alxafrica.com"
   },
   {
     "id": "kumasi-hive",
@@ -83,12 +127,20 @@
     "city": "Kumasi",
     "neighborhood": "Kentinkrono",
     "description": "Ghana's leading hardware and AI makerspace. Specializes in rapid prototyping, IoT, and deep tech innovation.",
-    "tags": ["Makerspace", "Hardware", "AI", "IoT"],
+    "tags": [
+      "Makerspace",
+      "Hardware",
+      "AI",
+      "IoT"
+    ],
     "website": "https://kumasihive.com",
-    "coordinates": { "lat": 6.6666, "lng": -1.6163 },
+    "coordinates": {
+      "lat": 6.6666,
+      "lng": -1.6163
+    },
     "verified": true,
     "founded": 2016,
-    "contact": ""
+    "contact": "info@kumasihive.com"
   },
   {
     "id": "hapaspace-kumasi",
@@ -96,12 +148,20 @@
     "city": "Kumasi",
     "neighborhood": "KNUST Area",
     "description": "A STEM-focused digital innovation hub championing youth entrepreneurship and skill development in the Ashanti Region.",
-    "tags": ["STEM", "Youth", "Co-working", "Training"],
+    "tags": [
+      "STEM",
+      "Youth",
+      "Co-working",
+      "Training"
+    ],
     "website": "https://hapaspace.com",
-    "coordinates": { "lat": 6.6745, "lng": -1.5716 },
+    "coordinates": {
+      "lat": 6.6745,
+      "lng": -1.5716
+    },
     "verified": true,
     "founded": 2018,
-    "contact": ""
+    "contact": "info@hapaspace.com"
   },
   {
     "id": "duapa-takoradi",
@@ -109,50 +169,158 @@
     "city": "Takoradi",
     "neighborhood": "Takoradi",
     "description": "The Western Region's startup ecosystem leader, focusing on youth employment and entrepreneurship development.",
-    "tags": ["Co-working", "Youth Employment", "Incubator"],
-    "website": "https://duapa.com",
-    "coordinates": { "lat": 4.8977, "lng": -1.7557 },
+    "tags": [
+      "Co-working",
+      "Youth Employment",
+      "Incubator"
+    ],
+    "website": "https://duapawerkspace.com",
+    "coordinates": {
+      "lat": 4.8977,
+      "lng": -1.7557
+    },
     "verified": true,
     "founded": 2017,
-    "contact": ""
+    "contact": "info@duapawerkspace.com"
   },
   {
     "id": "hopin-tamale",
     "name": "HOPin Academy",
     "city": "Tamale",
-    "neighborhood": "Tamale",
+    "neighborhood": "Agric Residential Area",
     "description": "Bringing entrepreneurial resources to Northern Ghana with a focus on AgriTech, education, and digital literacy.",
-    "tags": ["AgriTech", "Education", "Northern Ghana"],
-    "website": "#",
-    "coordinates": { "lat": 9.4008, "lng": -0.8393 },
-    "verified": false,
+    "tags": [
+      "AgriTech",
+      "Education",
+      "Northern Ghana"
+    ],
+    "website": "https://hopinacademy.org",
+    "coordinates": {
+      "lat": 9.4008,
+      "lng": -0.8393
+    },
+    "verified": true,
     "founded": 2020,
-    "contact": ""
+    "contact": "info@hopinacademy.org"
   },
   {
     "id": "yison-wa",
     "name": "Yison Tech Hub",
     "city": "Wa",
-    "neighborhood": "Wa",
+    "neighborhood": "Wa Senior High Technical School Area",
     "description": "Promoting digital literacy and tech adoption in the Upper West Region of Ghana.",
-    "tags": ["Digital Literacy", "Community", "Upper West"],
-    "website": "#",
-    "coordinates": { "lat": 10.0601, "lng": -2.5099 },
-    "verified": false,
+    "tags": [
+      "Digital Literacy",
+      "Community",
+      "Upper West"
+    ],
+    "website": "https://yisontechhub.com",
+    "coordinates": {
+      "lat": 10.0601,
+      "lng": -2.5099
+    },
+    "verified": true,
     "founded": 2021,
-    "contact": ""
+    "contact": "info@yisontechhub.com"
   },
   {
-    "id": "ho-node",
-    "name": "Ho Node",
+    "id": "node-eight-ho",
+    "name": "Node Eight",
     "city": "Ho",
-    "neighborhood": "Ho",
-    "description": "A digital innovation hub serving the Volta Region, connecting local entrepreneurs to the national tech ecosystem.",
-    "tags": ["Digital Innovation", "Co-working", "Volta Region"],
-    "website": "#",
-    "coordinates": { "lat": 6.6011, "lng": 0.4712 },
-    "verified": false,
+    "neighborhood": "Togbe Tawiah Building",
+    "description": "A digital innovation hub serving the Volta Region, formerly known as Ho Node Hub, connecting local entrepreneurs to the national tech ecosystem.",
+    "tags": [
+      "Digital Innovation",
+      "Co-working",
+      "Volta Region"
+    ],
+    "website": "https://nodeeight.org",
+    "coordinates": {
+      "lat": 6.6011,
+      "lng": 0.4712
+    },
+    "verified": true,
+    "founded": 2017,
+    "contact": "info@nodeeight.org"
+  },
+  {
+    "id": "agricohub-techiman",
+    "name": "AgricoHub",
+    "city": "Techiman",
+    "neighborhood": "Vatican City Avenue",
+    "description": "A business innovation hub in the Bono East Region focusing on agritech, trade, and youth entrepreneurship.",
+    "tags": [
+      "AgriTech",
+      "Incubator",
+      "Bono East"
+    ],
+    "website": "https://agricohubgh.com",
+    "coordinates": {
+      "lat": 7.5833,
+      "lng": -1.9333
+    },
+    "verified": true,
     "founded": 2020,
-    "contact": ""
+    "contact": "info@agricohubgh.com"
+  },
+  {
+    "id": "eastern-tech-hub-koforidua",
+    "name": "Eastern Tech Hub",
+    "city": "Koforidua",
+    "neighborhood": "Old Estate",
+    "description": "A leading tech innovation hub in the Eastern Region providing digital skills training and business advisory services.",
+    "tags": [
+      "Training",
+      "Digital Skills",
+      "Eastern Region"
+    ],
+    "website": "https://easterntechhub.org",
+    "coordinates": {
+      "lat": 6.0944,
+      "lng": -0.2591
+    },
+    "verified": true,
+    "founded": 2019,
+    "contact": "akwaaba@easterntechhub.org"
+  },
+  {
+    "id": "grassroots-hub-sunyani",
+    "name": "GrassRoots Hub",
+    "city": "Sunyani",
+    "neighborhood": "GNAT Hall Area",
+    "description": "An innovation and entrepreneurship hub in Sunyani empowering youth and women through digital literacy and startup support.",
+    "tags": [
+      "Social Impact",
+      "Incubator",
+      "Bono Region"
+    ],
+    "website": "https://grassrootshubgh.net",
+    "coordinates": {
+      "lat": 7.3400,
+      "lng": -2.3200
+    },
+    "verified": true,
+    "founded": 2016,
+    "contact": "communications@grassrootshubgh.net"
+  },
+  {
+    "id": "code-coast-cape-coast",
+    "name": "Code Coast",
+    "city": "Cape Coast",
+    "neighborhood": "Adisadel",
+    "description": "A tech hub and training center in the Central Region focusing on software development and digital entrepreneurship.",
+    "tags": [
+      "Software Development",
+      "Training",
+      "Central Region"
+    ],
+    "website": "https://codecoast.org",
+    "coordinates": {
+      "lat": 5.1053,
+      "lng": -1.2466
+    },
+    "verified": true,
+    "founded": 2018,
+    "contact": "info@codecoast.org"
   }
 ]

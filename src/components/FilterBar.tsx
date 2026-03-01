@@ -8,11 +8,10 @@ interface FilterBarProps {
   selectedTag: string
   onTagChange: (tag: string) => void
   allTags: string[]
+  allCities: string[]
   resultCount: number
   totalCount: number
 }
-
-const CITIES = ['All', 'Accra', 'Kumasi', 'Takoradi', 'Tamale', 'Other']
 
 function CustomDropdown({ label, options, selected, onSelect, icon }: {
   label: string,
@@ -92,9 +91,11 @@ export default function FilterBar({
   selectedTag,
   onTagChange,
   allTags,
+  allCities,
   resultCount,
   totalCount,
 }: FilterBarProps) {
+  const cityOptions = ['All', ...allCities]
   const focusOptions = ['All', ...allTags]
 
   return (
@@ -102,7 +103,7 @@ export default function FilterBar({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <CustomDropdown
           label="City"
-          options={CITIES}
+          options={cityOptions}
           selected={selectedCity}
           onSelect={onCityChange}
           icon={(

@@ -16,10 +16,8 @@ interface AIRecommenderProps {
 }
 
 const EXAMPLE_QUERIES = [
-  "Student in Kumasi building a hardware prototype",
   "Fintech startup in Accra looking for seed funding",
-  "Woman in tech seeking a supportive community",
-  "Remote developer needing daily co-working space",
+  "Student in Kumasi building a hardware prototype",
 ]
 
 export default function AIRecommender({ onResults, onClear }: AIRecommenderProps) {
@@ -28,11 +26,12 @@ export default function AIRecommender({ onResults, onClear }: AIRecommenderProps
   const [error, setError] = useState('')
   const [hasResults, setHasResults] = useState(false)
   const [activeExample, setActiveExample] = useState<string | null>(null)
+  const [usageRemaining, setUsageRemaining] = useState<number | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   async function handleSubmit(q?: string) {
     const finalQuery = (q ?? query).trim()
-    if (!finalQuery || loading) return
+    if (!finalQuery || loading || usageRemaining === 0) return
 
     setLoading(true)
     setError('')
@@ -47,12 +46,25 @@ export default function AIRecommender({ onResults, onClear }: AIRecommenderProps
 
       const data = await res.json()
 
+      if (res.status === 429) {
+        setError(data.error)
+        setUsageRemaining(0)
+        return
+      }
+
       if (!res.ok) {
         setError(data.error || 'Something went wrong.')
         return
       }
 
-      const { recommendations } = data as { recommendations: Recommendation[] }
+      const { recommendations, usageRemaining: remaining } = data as {
+        recommendations: Recommendation[],
+        usageRemaining?: number
+      }
+
+      if (remaining !== undefined) {
+        setUsageRemaining(remaining)
+      }
 
       if (!recommendations.length) {
         setError('No strong matches found. Try describing your needs differently.')
@@ -85,6 +97,7 @@ export default function AIRecommender({ onResults, onClear }: AIRecommenderProps
   }
 
   function handleExample(example: string) {
+    if (usageRemaining === 0) return
     setQuery(example)
     setActiveExample(example)
     setError('')
@@ -105,7 +118,10 @@ export default function AIRecommender({ onResults, onClear }: AIRecommenderProps
             Find My Hub — AI Recommender
           </h3>
           <p className="text-xs text-zinc-500 font-body">
-            Describe what you need in plain English (or Twi 🇬🇭)
+            {usageRemaining !== null && usageRemaining <= 1
+              ? `You have ${usageRemaining} match${usageRemaining === 1 ? '' : 'es'} left today 🇬🇭`
+              : 'Describe what you need in plain English (or Twi 🇬🇭)'
+            }
           </p>
         </div>
         {hasResults && (
@@ -121,11 +137,12 @@ export default function AIRecommender({ onResults, onClear }: AIRecommenderProps
         )}
       </div>
 
-      <div className="p-5 space-y-4">
+      <div className="p-4 sm:p-5 space-y-4">
         {/* Input */}
         <div className="relative">
           <textarea
             ref={inputRef}
+            disabled={usageRemaining === 0}
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => {
@@ -134,20 +151,20 @@ export default function AIRecommender({ onResults, onClear }: AIRecommenderProps
                 handleSubmit()
               }
             }}
-            placeholder="e.g. I'm a solo developer in Accra looking for affordable desk space and a developer community..."
+            placeholder={usageRemaining === 0 ? "Daily limit reached. Try again tomorrow!" : "e.g. I'm looking for a hardware hub in Kumasi..."}
             rows={2}
-            className="w-full px-4 py-3 pr-24 rounded-xl bg-surface border border-surface-border text-white
+            className={`w-full px-4 py-3 pr-20 xs:pr-24 rounded-xl bg-surface border border-surface-border text-white
                        placeholder-zinc-600 font-body text-sm resize-none
                        focus:outline-none focus:border-ghana-gold/50 focus:ring-1 focus:ring-ghana-gold/20
-                       transition-all duration-200"
+                       transition-all duration-200 ${usageRemaining === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
           />
           <button
             onClick={() => handleSubmit()}
-            disabled={!query.trim() || loading}
+            disabled={!query.trim() || loading || usageRemaining === 0}
             className={`
-              absolute right-2 bottom-2 px-3 py-1.5 rounded-lg text-xs font-medium font-body
-              flex items-center gap-1.5 transition-all duration-200
-              ${query.trim() && !loading
+              absolute right-2 bottom-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-medium font-body
+              flex items-center gap-1 sm:gap-1.5 transition-all duration-200
+              ${query.trim() && !loading && usageRemaining !== 0
                 ? 'bg-ghana-gold text-black hover:bg-amber-400 shadow-[0_0_12px_rgba(244,185,66,0.3)]'
                 : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
               }
@@ -156,7 +173,8 @@ export default function AIRecommender({ onResults, onClear }: AIRecommenderProps
             {loading ? (
               <>
                 <div className="w-3 h-3 border border-black/30 border-t-black rounded-full animate-spin" />
-                Thinking...
+                <span className="hidden xs:inline">Thinking...</span>
+                <span className="xs:hidden">...</span>
               </>
             ) : (
               <>
@@ -171,7 +189,7 @@ export default function AIRecommender({ onResults, onClear }: AIRecommenderProps
 
         {/* Error state */}
         {error && (
-          <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-red-900/20 border border-red-800/40 text-red-400 text-xs font-body">
+          <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-red-900/20 border border-red-800/40 text-red-400 text-[10px] sm:text-xs font-body">
             <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
@@ -182,20 +200,20 @@ export default function AIRecommender({ onResults, onClear }: AIRecommenderProps
         {/* Example queries */}
         {!hasResults && (
           <div>
-            <p className="text-xs text-zinc-600 font-body mb-2">Try an example:</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="text-[10px] sm:text-xs text-zinc-600 font-body mb-2">Try an example:</p>
+            <div className="flex flex-col sm:flex-row gap-2">
               {EXAMPLE_QUERIES.map(ex => (
                 <button
                   key={ex}
                   onClick={() => handleExample(ex)}
-                  disabled={loading}
+                  disabled={loading || usageRemaining === 0}
                   className={`
-                    text-xs px-2.5 py-1.5 rounded-lg border font-body transition-all duration-200
+                    flex-1 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg border font-body transition-all duration-200 text-center
                     ${activeExample === ex
                       ? 'bg-ghana-gold/15 border-ghana-gold/40 text-ghana-gold'
                       : 'bg-surface border-surface-border text-zinc-500 hover:border-zinc-600 hover:text-zinc-300'
                     }
-                    ${loading ? 'opacity-50 cursor-not-allowed' : ''}
+                    ${loading || usageRemaining === 0 ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                 >
                   {ex}
