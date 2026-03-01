@@ -164,13 +164,17 @@ export default function AdminDashboard() {
         }
     }
 
-    const saveMetadata = async (updatedCities: string[], updatedFocus: string[]) => {
+    const saveMetadata = async (updatedCities: string[], updatedFocus: string[], rename?: { type: 'city' | 'focus', oldName: string, newName: string }) => {
         setMetaSaving(true)
         try {
             await fetch('/api/admin/metadata', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cities: updatedCities, focusAreas: updatedFocus }),
+                body: JSON.stringify({
+                    cities: updatedCities,
+                    focusAreas: updatedFocus,
+                    rename
+                }),
             })
         } catch (err) {
             console.error('Failed to save metadata:', err)
@@ -194,11 +198,11 @@ export default function AdminDashboard() {
         if (type === 'city') {
             const updated = cities.map(c => c === oldName ? newName : c).sort()
             setCities(updated)
-            saveMetadata(updated, focusAreas)
+            saveMetadata(updated, focusAreas, { type, oldName, newName })
         } else {
             const updated = focusAreas.map(f => f === oldName ? newName : f).sort()
             setFocusAreas(updated)
-            saveMetadata(cities, updated)
+            saveMetadata(cities, updated, { type, oldName, newName })
         }
         setRenamingItem(null)
     }

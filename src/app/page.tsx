@@ -47,6 +47,9 @@ export default function HomePage() {
   const allTags = useMemo(() => metadata.focusAreas.length > 0 ? metadata.focusAreas : Array.from(new Set(hubs.flatMap(h => h.tags))).sort(), [hubs, metadata.focusAreas])
   const allCities = useMemo(() => metadata.cities.length > 0 ? metadata.cities : Array.from(new Set(hubs.map(h => h.city))).sort(), [hubs, metadata.cities])
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const hubsPerPage = 10
+
   const [search, setSearch] = useState('')
   const [cityFilter, setCityFilter] = useState('All')
   const [tagFilter, setTagFilter] = useState('All')
@@ -62,54 +65,67 @@ export default function HomePage() {
     setAiMatchIds(hubIds)
     setAiReasons(reasons)
     setAiMode(true)
-    // Reset manual filters so AI results show cleanly
     setCityFilter('All')
     setTagFilter('All')
     setSearch('')
+    setCurrentPage(1) // Reset to first page when AI results come in
   }
 
   function handleAIClear() {
     setAiMatchIds([])
     setAiReasons({})
     setAiMode(false)
+    setCurrentPage(1)
   }
 
   const filteredHubs = useMemo(() => {
-    // In AI mode — show matched hubs first, then rest dimmed; no filter applied
+    let results = hubs
+
     if (aiMode && aiMatchIds.length) {
       const matched = aiMatchIds.map(id => hubs.find(h => h.id === id)).filter(Boolean) as Hub[]
       const unmatched = hubs.filter(h => !aiMatchIds.includes(h.id))
-      return [...matched, ...unmatched]
+      results = [...matched, ...unmatched]
+    } else {
+      results = hubs.filter(hub => {
+        const matchesCity = cityFilter === 'All' || hub.city === cityFilter
+        const matchesTag = tagFilter === 'All' || hub.tags.includes(tagFilter)
+
+        const q = search.toLowerCase()
+        const matchesSearch =
+          !q ||
+          hub.name.toLowerCase().includes(q) ||
+          hub.city.toLowerCase().includes(q) ||
+          hub.description.toLowerCase().includes(q) ||
+          hub.tags.some(t => t.toLowerCase().includes(q)) ||
+          hub.neighborhood.toLowerCase().includes(q)
+
+        return matchesCity && matchesTag && matchesSearch
+      })
     }
-
-    return hubs.filter(hub => {
-      const matchesCity = cityFilter === 'All' || hub.city === cityFilter
-
-      const matchesTag = tagFilter === 'All' || hub.tags.includes(tagFilter)
-
-      const q = search.toLowerCase()
-      const matchesSearch =
-        !q ||
-        hub.name.toLowerCase().includes(q) ||
-        hub.city.toLowerCase().includes(q) ||
-        hub.description.toLowerCase().includes(q) ||
-        hub.tags.some(t => t.toLowerCase().includes(q)) ||
-        hub.neighborhood.toLowerCase().includes(q)
-
-      return matchesCity && matchesTag && matchesSearch
-    })
+    return results
   }, [hubs, search, cityFilter, tagFilter, aiMode, aiMatchIds])
 
-  const displayedHubs = aiMode
-    ? filteredHubs
-    : filteredHubs
+  const totalPages = Math.ceil(filteredHubs.length / hubsPerPage)
+  const displayedHubs = useMemo(() => {
+    const start = (currentPage - 1) * hubsPerPage
+    return filteredHubs.slice(start, start + hubsPerPage)
+  }, [filteredHubs, currentPage, hubsPerPage])
 
-  // Deselect hub if filtered out
+  // Deselect hub if filtered out or not on current page
   useEffect(() => {
-    if (selectedHub && !filteredHubs.find(h => h.id === selectedHub.id)) {
-      setSelectedHub(null)
+    if (selectedHub && !displayedHubs.find(h => h.id === selectedHub.id)) {
+      // Only deselect if it's completely gone from results, 
+      // not just on a different page (to let map selection persist)
+      if (!filteredHubs.find(h => h.id === selectedHub.id)) {
+        setSelectedHub(null)
+      }
     }
-  }, [filteredHubs, selectedHub])
+  }, [filteredHubs, displayedHubs, selectedHub])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, cityFilter, tagFilter])
 
   return (
     <div className="min-h-screen bg-surface text-white">
@@ -268,6 +284,27 @@ export default function HomePage() {
                   </div>
                 )
               })
+            )}
+            {displayedHubs.length > 0 && totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4 pb-2 px-1">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded-xl bg-surface-card border border-surface-border text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white hover:border-ghana-gold/50 transition-all disabled:opacity-20 disabled:hover:text-zinc-400 disabled:hover:border-surface-border"
+                >
+                  ← Previous
+                </button>
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">
+                  Page <span className="text-zinc-400">{currentPage}</span> / <span className="text-zinc-400">{totalPages}</span>
+                </div>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 rounded-xl bg-surface-card border border-surface-border text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white hover:border-ghana-gold/50 transition-all disabled:opacity-20 disabled:hover:text-zinc-400 disabled:hover:border-surface-border"
+                >
+                  Next →
+                </button>
+              </div>
             )}
           </div>
 
