@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { db } from '@/lib/firebase'
-import { collection, query, where, getDocs, doc, getDoc, setDoc, increment, serverTimestamp } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, getDoc, setDoc, runTransaction, increment, serverTimestamp } from 'firebase/firestore'
 import { getCachedData, updateServerCache } from '@/lib/cache'
 import crypto from 'crypto'
 
@@ -30,19 +30,37 @@ export async function POST(req: NextRequest) {
     const today = new Date().toISOString().split('T')[0]
     const limitDocRef = doc(db, 'usage_limits', `${ipHash}_${today}`)
 
-    const [limitDoc, cacheStatus] = await Promise.all([
-      getDoc(limitDocRef),
+    // Atomically check + reserve a slot before calling Gemini.
+    // This prevents concurrent requests from bypassing the daily limit.
+    const DAILY_LIMIT = 3
+    let countAfterReserve: number
+
+    const [reserveResult, cacheStatus] = await Promise.all([
+      runTransaction(db, async (transaction) => {
+        const limitSnap = await transaction.get(limitDocRef)
+        const currentCount = limitSnap.exists() ? limitSnap.data().count : 0
+        if (currentCount >= DAILY_LIMIT) {
+          return { allowed: false as const, currentCount }
+        }
+        transaction.set(limitDocRef, {
+          count: increment(1),
+          lastUsed: serverTimestamp(),
+          ipHash,
+          date: today
+        }, { merge: true })
+        return { allowed: true as const, currentCount: currentCount + 1 }
+      }),
       getCachedData()
     ])
 
-    const currentCount = limitDoc.exists() ? limitDoc.data().count : 0
-
-    if (currentCount >= 3) {
+    if (!reserveResult.allowed) {
       return NextResponse.json(
         { error: "Daily limit reached. You've used your 3 AI recommendations for today. Come back tomorrow!" },
         { status: 429 }
       )
     }
+
+    countAfterReserve = reserveResult.currentCount
 
     if (userQuery.trim().length > 300) {
       return NextResponse.json(
@@ -52,32 +70,27 @@ export async function POST(req: NextRequest) {
     }
 
     // Get hubs from cache or fetch if stale
-    let hubsData: any[] = []
+    let fullHubs: any[] = []
     if (cacheStatus && cacheStatus.fromCache) {
-      hubsData = cacheStatus.hubs.map((h: any) => ({
-        id: h.id,
-        name: h.name,
-        city: h.city,
-        neighborhood: h.neighborhood,
-        tags: h.tags,
-        description: h.description,
-      }))
+      fullHubs = cacheStatus.hubs
     } else {
       const hubsSnapshot = await getDocs(query(collection(db, 'hubs'), where('verified', '==', true)))
-      hubsData = hubsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        name: doc.get('name'),
-        city: doc.get('city'),
-        neighborhood: doc.get('neighborhood'),
-        tags: doc.get('tags'),
-        description: doc.get('description'),
-      }))
+      fullHubs = hubsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
 
-      // Update cache if we have metadata
       if (cacheStatus) {
-        updateServerCache(hubsData, cacheStatus.metadata, cacheStatus.currentLastUpdated!)
+        updateServerCache(fullHubs, cacheStatus.metadata, cacheStatus.currentLastUpdated!)
       }
     }
+
+    // Only send the fields the AI needs for matching
+    const hubsData = fullHubs.map((h: any) => ({
+      id: h.id,
+      name: h.name,
+      city: h.city,
+      neighborhood: h.neighborhood,
+      tags: h.tags,
+      description: h.description,
+    }))
 
     const systemPrompt = `You are a helpful assistant for Hub Map GH — a directory of Ghana's tech ecosystem.
 Your job is to recommend the best matching tech hubs based on what the user is looking for.
@@ -146,17 +159,9 @@ Response format (strict JSON array):
       .filter(r => validIds.has(r.hubId) && r.reason && typeof r.score === 'number')
       .slice(0, 2) // Limit to top 2 matches as requested
 
-    // If successful, increment the usage count
-    await setDoc(limitDocRef, {
-      count: increment(1),
-      lastUsed: serverTimestamp(),
-      ipHash: ipHash,
-      date: today
-    }, { merge: true })
-
     return NextResponse.json({
       recommendations: validated,
-      usageRemaining: 3 - (currentCount + 1)
+      usageRemaining: DAILY_LIMIT - countAfterReserve
     })
 
   } catch (err: any) {

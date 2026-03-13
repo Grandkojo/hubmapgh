@@ -35,7 +35,9 @@ function getTagColor(tag: string): string {
 
 export default function HubCard({ hub, index, onSelect, isSelected, aiReason, aiRank }: HubCardProps) {
   const [showCopyAlert, setShowCopyAlert] = useState(false)
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hub.name + ' ' + hub.neighborhood + ' ' + hub.city)}&query_place_id=${hub.coordinates.lat},${hub.coordinates.lng}`
+  const mapsUrl = hub.coordinates
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hub.name + ' ' + hub.neighborhood + ' ' + hub.city)}&query_place_id=${hub.coordinates.lat},${hub.coordinates.lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hub.name + ' ' + hub.neighborhood + ' ' + hub.city)}`
   const isAIMatch = !!aiReason
 
   const handleShare = async (e: React.MouseEvent) => {
