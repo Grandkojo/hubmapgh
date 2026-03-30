@@ -1,5 +1,4 @@
-import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 
 // In-memory cache for the server instance
 let serverCache: {
@@ -14,10 +13,10 @@ let serverCache: {
 
 export async function getCachedData() {
     try {
-        const filtersRef = doc(db, 'metadata', 'filters');
-        const filtersSnap = await getDoc(filtersRef);
+        const filtersRef = adminDb.collection('metadata').doc('filters');
+        const filtersSnap = await filtersRef.get();
 
-        if (!filtersSnap.exists()) return null;
+        if (!filtersSnap.exists) return null;
 
         const metadata = filtersSnap.data();
         const currentLastUpdated = metadata.lastUpdated;
@@ -61,8 +60,8 @@ export async function invalidateServerCache() {
 
     // Update Firestore to notify other instances
     try {
-        const filtersRef = doc(db, 'metadata', 'filters');
-        await updateDoc(filtersRef, {
+        const filtersRef = adminDb.collection('metadata').doc('filters');
+        await filtersRef.update({
             lastUpdated: new Date().toISOString()
         });
     } catch (error) {

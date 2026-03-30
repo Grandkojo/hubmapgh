@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 import { invalidateServerCache } from '@/lib/cache';
 
 export async function POST(req: NextRequest) {
@@ -22,13 +22,13 @@ export async function POST(req: NextRequest) {
             contact: contact || '',
             tags: tags || [],
             verified: false,
-            submittedAt: serverTimestamp(),
+            submittedAt: FieldValue.serverTimestamp(),
             submittedBy: 'community',
             coordinates: coordinates || { lat: 0, lng: 0 },
             founded: new Date().getFullYear(),
         };
 
-        const docRef = await addDoc(collection(db, 'hubs'), hubData);
+        const docRef = await adminDb.collection('hubs').add(hubData);
 
         await invalidateServerCache();
 

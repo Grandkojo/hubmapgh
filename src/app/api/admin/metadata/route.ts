@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, collection, getDocs, writeBatch, query, where } from 'firebase/firestore';
-import { invalidateServerCache } from '@/lib/cache';
+import { adminDb } from '@/lib/firebase-admin';
+import { verifyAdminRequest } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const docRef = doc(db, 'metadata', 'filters');
-        const docSnap = await getDoc(docRef);
+        const auth = await verifyAdminRequest(req)
+        if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-        if (docSnap.exists()) {
+        const docRef = adminDb.collection('metadata').doc('filters');
+        const docSnap = await docRef.get();
+
+        if (docSnap.exists) {
             return NextResponse.json(docSnap.data());
         }
         return NextResponse.json({ cities: [], focusAreas: [] });
@@ -21,25 +23,24 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
     try {
+        const auth = await verifyAdminRequest(req)
+        if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
         const { cities, focusAreas, rename } = await req.json();
-        const docRef = doc(db, 'metadata', 'filters');
+        const docRef = adminDb.collection('metadata').doc('filters');
 
         const lastUpdated = new Date().toISOString();
 
         // Handle bulk rename if provided
         if (rename) {
             const { type, oldName, newName } = rename;
-            const hubsRef = collection(db, 'hubs');
-            const q = query(hubsRef, where(type === 'city' ? 'city' : 'tags', 'array-contains-any', type === 'city' ? [oldName] : [oldName]));
-
-            // Note: Firestore doesn't support 'array-contains' with a direct filter for strings easily if it's the only value.
-            // For city it's a string, for tags it's an array.
+            const hubsRef = adminDb.collection('hubs');
             const qActual = type === 'city'
-                ? query(hubsRef, where('city', '==', oldName))
-                : query(hubsRef, where('tags', 'array-contains', oldName));
+                ? hubsRef.where('city', '==', oldName)
+                : hubsRef.where('tags', 'array-contains', oldName);
 
-            const snapshot = await getDocs(qActual);
-            const batch = writeBatch(db);
+            const snapshot = await qActual.get();
+            const batch = adminDb.batch();
 
             snapshot.docs.forEach((hubDoc) => {
                 if (type === 'city') {
@@ -54,13 +55,11 @@ export async function POST(req: NextRequest) {
             await batch.commit();
         }
 
-        await updateDoc(docRef, {
+        await docRef.update({
             cities,
             focusAreas,
             lastUpdated
         });
-
-        await invalidateServerCache();
 
         return NextResponse.json({ message: 'Metadata and hubs updated successfully', lastUpdated });
     } catch (error: any) {

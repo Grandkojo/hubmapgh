@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { invalidateServerCache } from '@/lib/cache';
+import { adminDb } from '@/lib/firebase-admin';
+import { verifyAdminRequest } from '@/lib/admin-auth';
 
 export async function PATCH(req: NextRequest) {
     try {
+        const auth = await verifyAdminRequest(req)
+        if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
         const { id, verified } = await req.json();
 
         if (!id) {
             return NextResponse.json({ error: 'Missing hub ID' }, { status: 400 });
         }
 
-        const hubRef = doc(db, 'hubs', id);
-        await updateDoc(hubRef, {
+        const hubRef = adminDb.collection('hubs').doc(id);
+        await hubRef.update({
             verified: !!verified,
             verifiedAt: new Date().toISOString(),
         });
 
-        await invalidateServerCache();
+        await adminDb.collection('metadata').doc('filters').set({ lastUpdated: new Date().toISOString() }, { merge: true })
 
         return NextResponse.json({ message: `Hub ${verified ? 'verified' : 'unverified'} successfully` });
     } catch (error: any) {
@@ -28,6 +30,9 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
     try {
+        const auth = await verifyAdminRequest(req)
+        if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
 
@@ -35,9 +40,8 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: 'Missing hub ID' }, { status: 400 });
         }
 
-        await deleteDoc(doc(db, 'hubs', id));
-
-        await invalidateServerCache();
+        await adminDb.collection('hubs').doc(id).delete();
+        await adminDb.collection('metadata').doc('filters').set({ lastUpdated: new Date().toISOString() }, { merge: true })
 
         return NextResponse.json({ message: 'Hub deleted successfully' });
     } catch (error: any) {

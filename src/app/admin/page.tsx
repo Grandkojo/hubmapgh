@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { db } from '@/lib/firebase'
+import { auth, db } from '@/lib/firebase'
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore'
 import Link from 'next/link'
 import ConfirmModal from '@/components/ConfirmModal'
@@ -47,6 +47,15 @@ export default function AdminDashboard() {
     const [metaSaving, setMetaSaving] = useState(false)
     const [renamingItem, setRenamingItem] = useState<{ type: 'city' | 'focus', oldName: string, newName: string } | null>(null)
 
+    const getAuthHeaders = async () => {
+        const token = await auth.currentUser?.getIdToken()
+        if (!token) throw new Error('Not authenticated')
+        return {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        }
+    }
+
     // Auth Redirect
     useEffect(() => {
         if (!authLoading && !user) {
@@ -77,11 +86,15 @@ export default function AdminDashboard() {
         })
 
         // Fetch metadata
-        fetch('/api/admin/metadata', { cache: 'no-store' })
+        getAuthHeaders()
+            .then(headers => fetch('/api/admin/metadata', { cache: 'no-store', headers }))
             .then(res => res.json())
             .then(data => {
                 setCities(data.cities || [])
                 setFocusAreas(data.focusAreas || [])
+            })
+            .catch(err => {
+                console.error('Failed to load metadata:', err)
             })
 
         return () => {
@@ -110,7 +123,7 @@ export default function AdminDashboard() {
         try {
             await fetch('/api/admin/verify', {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await getAuthHeaders(),
                 body: JSON.stringify({ id, verified }),
             })
         } catch (err) {
@@ -134,7 +147,7 @@ export default function AdminDashboard() {
         setConfirmModal(prev => ({ ...prev, isOpen: false }))
         setActionLoading(id)
         try {
-            await fetch(`/api/admin/hubs?id=${id}`, { method: 'DELETE' })
+            await fetch(`/api/admin/hubs?id=${id}`, { method: 'DELETE', headers: await getAuthHeaders() })
         } catch (err) {
             console.error('Failed to delete:', err)
         } finally {
@@ -148,7 +161,7 @@ export default function AdminDashboard() {
         try {
             await fetch('/api/admin/hubs', {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await getAuthHeaders(),
                 body: JSON.stringify({
                     id: editingHub.id,
                     ...editForm,
@@ -171,7 +184,7 @@ export default function AdminDashboard() {
         try {
             await fetch('/api/admin/metadata', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await getAuthHeaders(),
                 body: JSON.stringify({
                     cities: updatedCities,
                     focusAreas: updatedFocus,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { db } from '@/lib/firebase'
-import { collection, query, where, getDocs, doc, getDoc, setDoc, runTransaction, increment, serverTimestamp } from 'firebase/firestore'
+import { adminDb } from '@/lib/firebase-admin'
+import { FieldValue } from 'firebase-admin/firestore'
 import { getCachedData, updateServerCache } from '@/lib/cache'
 import crypto from 'crypto'
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get('x-forwarded-for') || 'anonymous'
     const ipHash = crypto.createHash('md5').update(ip).digest('hex')
     const today = new Date().toISOString().split('T')[0]
-    const limitDocRef = doc(db, 'usage_limits', `${ipHash}_${today}`)
+    const limitDocRef = adminDb.collection('usage_limits').doc(`${ipHash}_${today}`)
 
     // Atomically check + reserve a slot before calling Gemini.
     // This prevents concurrent requests from bypassing the daily limit.
@@ -36,15 +36,15 @@ export async function POST(req: NextRequest) {
     let countAfterReserve: number
 
     const [reserveResult, cacheStatus] = await Promise.all([
-      runTransaction(db, async (transaction) => {
+      adminDb.runTransaction(async (transaction) => {
         const limitSnap = await transaction.get(limitDocRef)
-        const currentCount = limitSnap.exists() ? limitSnap.data().count : 0
+        const currentCount = limitSnap.exists ? limitSnap.data()?.count ?? 0 : 0
         if (currentCount >= DAILY_LIMIT) {
           return { allowed: false as const, currentCount }
         }
         transaction.set(limitDocRef, {
-          count: increment(1),
-          lastUsed: serverTimestamp(),
+          count: FieldValue.increment(1),
+          lastUsed: FieldValue.serverTimestamp(),
           ipHash,
           date: today
         }, { merge: true })
@@ -74,8 +74,8 @@ export async function POST(req: NextRequest) {
     if (cacheStatus && cacheStatus.fromCache) {
       fullHubs = cacheStatus.hubs
     } else {
-      const hubsSnapshot = await getDocs(query(collection(db, 'hubs'), where('verified', '==', true)))
-      fullHubs = hubsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      const hubsSnapshot = await adminDb.collection('hubs').where('verified', '==', true).get()
+      fullHubs = hubsSnapshot.docs.map((hubDoc) => ({ id: hubDoc.id, ...hubDoc.data() }))
 
       if (cacheStatus) {
         updateServerCache(fullHubs, cacheStatus.metadata, cacheStatus.currentLastUpdated!)

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 import { getCachedData, updateServerCache } from '@/lib/cache';
 
 export const dynamic = 'force-dynamic';
@@ -18,11 +17,10 @@ export async function GET() {
         }
 
         // Refresh needed
-        const hubsQuery = query(collection(db, 'hubs'), where('verified', '==', true));
-        const querySnapshot = await getDocs(hubsQuery);
-        const hubs = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
+        const querySnapshot = await adminDb.collection('hubs').where('verified', '==', true).get();
+        const hubs = querySnapshot.docs.map(hubDoc => ({
+            id: hubDoc.id,
+            ...hubDoc.data()
         }));
 
         if (cacheStatus) {
