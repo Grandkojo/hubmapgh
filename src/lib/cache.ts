@@ -18,8 +18,8 @@ export async function getCachedData() {
 
         if (!filtersSnap.exists) return null;
 
-        const metadata = filtersSnap.data();
-        const currentLastUpdated = metadata.lastUpdated;
+        const metadata = filtersSnap.data() ?? {};
+        const currentLastUpdated = typeof metadata.lastUpdated === 'string' ? metadata.lastUpdated : null;
 
         // Return from memory if timestamps match
         if (serverCache.lastUpdated === currentLastUpdated && serverCache.hubs && serverCache.metadata) {
