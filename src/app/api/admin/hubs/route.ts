@@ -18,6 +18,34 @@ export async function GET(req: NextRequest) {
     }
 }
 
+export async function POST(req: NextRequest) {
+    try {
+        const auth = await verifyAdminRequest(req)
+        if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
+        const data = await req.json();
+        
+        // Validation
+        if (!data.name || !data.city || !data.description) {
+            return NextResponse.json({ error: 'Missing required fields (name, city, description)' }, { status: 400 });
+        }
+
+        const hubData = {
+            ...data,
+            verified: true, // Auto-verified since admin is adding it
+            submittedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        const docRef = await adminDb.collection('hubs').add(hubData);
+        await adminDb.collection('metadata').doc('filters').set({ lastUpdated: new Date().toISOString() }, { merge: true })
+        
+        return NextResponse.json({ message: 'Hub created successfully', id: docRef.id });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
 export async function PATCH(req: NextRequest) {
     try {
         const auth = await verifyAdminRequest(req)
@@ -25,6 +53,11 @@ export async function PATCH(req: NextRequest) {
 
         const { id, ...data } = await req.json();
         if (!id) return NextResponse.json({ error: 'Missing hub ID' }, { status: 400 });
+
+        // Validation
+        if (!data.name || !data.city || !data.description) {
+            return NextResponse.json({ error: 'Missing required fields (name, city, description)' }, { status: 400 });
+        }
 
         const hubRef = adminDb.collection('hubs').doc(id);
         await hubRef.update({
