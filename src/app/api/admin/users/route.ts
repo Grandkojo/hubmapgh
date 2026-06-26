@@ -15,19 +15,27 @@ export async function GET(req: NextRequest) {
             ...doc.data()
         }))
 
-        // Auto-seed super admins from .env if they don't exist in d_users yet
-        const rawEmails = process.env.ADMIN_EMAILS || ''
-        const envAdmins = rawEmails.split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean)
+        // Auto-seed admins & super admins from .env if they don't exist in d_users yet
+        const rawAdmins = process.env.ADMIN_EMAILS || ''
+        const envAdmins = rawAdmins.split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean)
         
-        for (const email of envAdmins) {
-            if (!users.some((u: any) => u.email === email)) {
+        const rawSuperAdmins = process.env.SUPER_ADMIN_EMAILS || ''
+        const envSuperAdmins = rawSuperAdmins.split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean)
+        
+        const allEnvUsers = [
+            ...envSuperAdmins.map(e => ({ email: e, role: 'super_admin', claims: { admin: true, super_admin: true } })),
+            ...envAdmins.map(e => ({ email: e, role: 'admin', claims: { admin: true } }))
+        ]
+        
+        for (const envUser of allEnvUsers) {
+            if (!users.some((u: any) => u.email === envUser.email)) {
                 try {
-                    const userRecord = await adminAuth.getUserByEmail(email)
-                    await adminAuth.setCustomUserClaims(userRecord.uid, { admin: true })
+                    const userRecord = await adminAuth.getUserByEmail(envUser.email)
+                    await adminAuth.setCustomUserClaims(userRecord.uid, envUser.claims)
                     
                     const newAdminData = {
-                        email: email,
-                        role: 'admin',
+                        email: envUser.email,
+                        role: envUser.role,
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
                         createdBy: 'system_auto_seed'
@@ -36,7 +44,7 @@ export async function GET(req: NextRequest) {
                     await adminDb.collection('d_users').doc(userRecord.uid).set(newAdminData)
                     users.push({ id: userRecord.uid, ...newAdminData })
                 } catch (e) {
-                    console.warn(`Could not auto-seed admin ${email}:`, e)
+                    console.warn(`Could not auto-seed admin ${envUser.email}:`, e)
                 }
             }
         }
@@ -57,13 +65,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: authResult.error }, { status: authResult.status })
     }
 
-    if (!authResult.isSuperAdmin) {
-        return NextResponse.json({ error: 'Forbidden: Only Super Admins can add new admins' }, { status: 403 })
-    }
-
+    // Standard admins can add standard admins. Only Super Admins can add Super Admins.
     try {
-        const { email } = await req.json()
+        const { email, role = 'admin' } = await req.json()
         if (!email) return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+
+        if (role === 'super_admin' && !authResult.isSuperAdmin) {
+            return NextResponse.json({ error: 'Forbidden: Only Super Admins can create new Super Admins' }, { status: 403 })
+        }
 
         const normalizedEmail = email.toLowerCase().trim()
         let userRecord
@@ -88,12 +97,13 @@ export async function POST(req: NextRequest) {
         }
 
         // Assign custom claim
-        await adminAuth.setCustomUserClaims(userRecord.uid, { admin: true })
+        const claims = role === 'super_admin' ? { admin: true, super_admin: true } : { admin: true }
+        await adminAuth.setCustomUserClaims(userRecord.uid, claims)
 
         // Save to d_users collection
         await adminDb.collection('d_users').doc(userRecord.uid).set({
             email: normalizedEmail,
-            role: 'admin',
+            role: role,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             createdBy: authResult.email
@@ -126,7 +136,7 @@ export async function DELETE(req: NextRequest) {
         if (!uid) return NextResponse.json({ error: 'UID is required' }, { status: 400 })
 
         // Remove custom claim
-        await adminAuth.setCustomUserClaims(uid, { admin: null })
+        await adminAuth.setCustomUserClaims(uid, { admin: null, super_admin: null })
 
         // Update role in d_users instead of deleting
         await adminDb.collection('d_users').doc(uid).update({

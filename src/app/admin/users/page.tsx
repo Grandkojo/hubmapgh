@@ -18,6 +18,7 @@ export default function UsersManagementPage() {
     const [loading, setLoading] = useState(true)
     const [addingUser, setAddingUser] = useState(false)
     const [newEmail, setNewEmail] = useState('')
+    const [newRole, setNewRole] = useState('admin')
     const [error, setError] = useState('')
     const [successMsg, setSuccessMsg] = useState('')
     const [generatedPassword, setGeneratedPassword] = useState('')
@@ -57,7 +58,7 @@ export default function UsersManagementPage() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ email: newEmail })
+                body: JSON.stringify({ email: newEmail, role: newRole })
             })
             const data = await res.json()
 
@@ -70,6 +71,7 @@ export default function UsersManagementPage() {
             }
 
             setNewEmail('')
+            setNewRole('admin')
             fetchUsers()
         } catch (err: any) {
             setError(err.message)
@@ -118,9 +120,8 @@ export default function UsersManagementPage() {
                 </div>
             </div>
 
-            {isSuperAdmin && (
-                <div className="bg-surface p-6 rounded-2xl border border-surface-border">
-                    <h2 className="text-sm font-black uppercase tracking-widest text-white mb-4">Add New Admin</h2>
+            <div className="bg-surface p-6 rounded-2xl border border-surface-border">
+                <h2 className="text-sm font-black uppercase tracking-widest text-white mb-4">Add New Admin</h2>
                     <form onSubmit={handleAddAdmin} className="flex flex-col sm:flex-row gap-4">
                         <input
                             type="email"
@@ -130,6 +131,16 @@ export default function UsersManagementPage() {
                             onChange={(e) => setNewEmail(e.target.value)}
                             className="flex-1 bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-ghana-gold/50"
                         />
+                        {isSuperAdmin && (
+                            <select
+                                value={newRole}
+                                onChange={(e) => setNewRole(e.target.value)}
+                                className="bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm text-zinc-300 focus:outline-none focus:border-ghana-gold/50"
+                            >
+                                <option value="admin">Admin</option>
+                                <option value="super_admin">Super Admin</option>
+                            </select>
+                        )}
                         <button
                             type="submit"
                             disabled={addingUser}
@@ -149,8 +160,7 @@ export default function UsersManagementPage() {
                             <p className="text-white font-mono text-lg bg-black/50 p-2 rounded inline-block">{generatedPassword}</p>
                         </div>
                     )}
-                </div>
-            )}
+            </div>
 
             <div className="bg-surface rounded-2xl border border-surface-border overflow-hidden">
                 <div className="overflow-x-auto">
@@ -169,11 +179,13 @@ export default function UsersManagementPage() {
                                     <td className="px-6 py-4 font-mono text-zinc-300">{u.email}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 text-[10px] uppercase font-black tracking-widest rounded-md border ${
-                                            u.role === 'admin' 
+                                            u.role === 'super_admin'
+                                            ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                                            : u.role === 'admin' 
                                             ? 'bg-ghana-gold/10 text-ghana-gold border-ghana-gold/20' 
                                             : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
                                         }`}>
-                                            {u.role}
+                                            {u.role.replace('_', ' ')}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-zinc-500 text-xs">
@@ -181,7 +193,7 @@ export default function UsersManagementPage() {
                                     </td>
                                     {isSuperAdmin && (
                                         <td className="px-6 py-4 text-right">
-                                            {u.role === 'admin' ? (
+                                            {(u.role === 'admin' || u.role === 'super_admin') ? (
                                                 <button
                                                     onClick={() => handleRevoke(u.id)}
                                                     className="text-ghana-red hover:text-red-400 text-[10px] font-black uppercase tracking-widest transition-colors"
