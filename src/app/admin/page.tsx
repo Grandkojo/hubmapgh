@@ -6,16 +6,6 @@ import { useEffect, useState } from 'react'
 
 export default function AdminIndex() {
     const { allHubs, pendingHubs, cities } = useAdmin()
-    
-    // Dummy traffic data for the chart (heights in percentage)
-    const [chartData, setChartData] = useState<number[]>([10, 10, 10, 10, 10, 10, 10])
-
-    useEffect(() => {
-        // Animate chart on load
-        setTimeout(() => {
-            setChartData([40, 65, 45, 80, 55, 90, 75])
-        }, 100)
-    }, [])
 
     return (
         <section className="space-y-8 sm:space-y-12 animate-in fade-in duration-700">
@@ -64,60 +54,7 @@ export default function AdminIndex() {
                 </div>
             </div>
 
-            {/* Dummy Traffic Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-surface-card border border-surface-border p-6 sm:p-8 rounded-[2rem] shadow-xl">
-                    <div className="flex items-center justify-between mb-8">
-                        <div>
-                            <h3 className="text-sm font-black text-zinc-300 uppercase tracking-widest mb-1">Site Traffic</h3>
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Last 7 Days (Demo)</p>
-                        </div>
-                        <span className="px-3 py-1 bg-ghana-green/20 text-ghana-green text-[10px] font-black uppercase tracking-widest rounded-lg">+12.5%</span>
-                    </div>
 
-                    <div className="h-48 flex items-end gap-2 sm:gap-4 mt-8">
-                        {chartData.map((height, i) => (
-                            <div key={i} className="flex-1 flex flex-col justify-end items-center gap-2 group">
-                                <div 
-                                    className="w-full bg-gradient-to-t from-zinc-800 to-ghana-gold/80 rounded-t-lg transition-all duration-1000 ease-out group-hover:to-ghana-gold relative"
-                                    style={{ height: `${height}%` }}
-                                >
-                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-black text-white text-[10px] font-bold px-2 py-1 rounded">
-                                        {Math.floor(height * 142)}
-                                    </div>
-                                </div>
-                                <span className="text-[9px] text-zinc-600 font-bold uppercase">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    <div className="bg-surface-card border border-surface-border p-6 rounded-[2rem] shadow-xl">
-                        <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Total Page Views</h3>
-                        <div className="flex items-end gap-3">
-                            <span className="text-3xl font-black font-syne text-white">34,291</span>
-                            <span className="text-xs font-bold text-ghana-green mb-1">↑ 8%</span>
-                        </div>
-                    </div>
-                    
-                    <div className="bg-surface-card border border-surface-border p-6 rounded-[2rem] shadow-xl">
-                        <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Unique Visitors</h3>
-                        <div className="flex items-end gap-3">
-                            <span className="text-3xl font-black font-syne text-white">12,840</span>
-                            <span className="text-xs font-bold text-ghana-green mb-1">↑ 12%</span>
-                        </div>
-                    </div>
-
-                    <div className="bg-surface-card border border-surface-border p-6 rounded-[2rem] shadow-xl">
-                        <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Search Queries</h3>
-                        <div className="flex items-end gap-3">
-                            <span className="text-3xl font-black font-syne text-white">4,902</span>
-                            <span className="text-xs font-bold text-zinc-500 mb-1">- 2%</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Quick Actions */}
             <div>

@@ -139,13 +139,7 @@ export default function SubmitHubPage() {
 
             <header className="border-b border-surface-border bg-surface/80 backdrop-blur-md px-4 py-4 flex items-center justify-between gap-2">
                 <Link href="/" className="flex items-center gap-2">
-                    <div className="flex flex-col h-6 w-9 rounded overflow-hidden flex-shrink-0">
-                        <div className="flex-1 bg-ghana-red" />
-                        <div className="flex-1 bg-ghana-gold flex items-center justify-center">
-                            <div className="w-2.5 h-2.5 bg-black" style={{ clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' }} />
-                        </div>
-                        <div className="flex-1 bg-ghana-green" />
-                    </div>
+                    <img src="/hubmap-logo-yellow.png" alt="Hub Map GH Logo" className="h-7 w-7 object-contain" />
                     <h1 className="text-lg sm:text-2xl font-bold truncate" style={{ fontFamily: 'var(--font-syne)' }}>Hub Map GH</h1>
                 </Link>
                 <Link href="/" className="text-zinc-500 hover:text-white transition-colors text-xs sm:text-base font-body whitespace-nowrap">

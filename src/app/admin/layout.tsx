@@ -45,12 +45,8 @@ function AdminSidebar({ children }: { children: React.ReactNode }) {
                                 )}
                             </svg>
                         </button>
-                        <Link href="/" className="flex flex-col h-5 w-7 rounded overflow-hidden flex-shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
-                            <div className="flex-1 bg-ghana-red" />
-                            <div className="flex-1 bg-ghana-gold flex items-center justify-center">
-                                <div className="w-2 h-2 bg-black" style={{ clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' }} />
-                            </div>
-                            <div className="flex-1 bg-ghana-green" />
+                        <Link href="/" className="flex items-center justify-center flex-shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
+                            <img src="/hubmap-logo-yellow.png" alt="Hub Map GH Logo" className="h-6 w-6 object-contain" />
                         </Link>
                         <h1 className="text-sm font-bold font-syne truncate">Hubmap Console</h1>
                     </div>
@@ -95,12 +91,8 @@ function AdminSidebar({ children }: { children: React.ReactNode }) {
                 <div className="ghana-bar shrink-0" />
                 <div className="p-8 flex-1 flex flex-col">
                     <Link href="/" className="flex items-center gap-3 mb-10 group">
-                        <div className="flex flex-col h-8 w-12 rounded overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
-                            <div className="flex-1 bg-ghana-red" />
-                            <div className="flex-1 bg-ghana-gold flex items-center justify-center">
-                                <div className="w-3.5 h-3.5 bg-black" style={{ clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' }} />
-                            </div>
-                            <div className="flex-1 bg-ghana-green" />
+                        <div className="flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                            <img src="/hubmap-logo-yellow.png" alt="Hub Map GH Logo" className="h-10 w-10 object-contain rounded-xl" />
                         </div>
                         <div>
                             <h1 className="text-xl font-bold font-syne leading-none mb-1">Hub Map GH</h1>
