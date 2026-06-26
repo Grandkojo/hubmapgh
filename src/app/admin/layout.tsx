@@ -4,13 +4,14 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { AdminProvider, useAdmin } from '@/context/AdminContext'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 function AdminSidebar({ children }: { children: React.ReactNode }) {
     const { user, loading: authLoading, logout } = useAuth()
     const { pendingHubs, allHubs } = useAdmin()
     const router = useRouter()
     const pathname = usePathname()
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -31,27 +32,62 @@ function AdminSidebar({ children }: { children: React.ReactNode }) {
     return (
         <div className="min-h-screen bg-surface text-white flex flex-col md:flex-row">
             {/* Mobile Header & Tabs */}
-            <div className="md:hidden flex flex-col w-full border-b border-surface-border bg-surface/90 backdrop-blur-md sticky top-0 z-50">
+            <div className="md:hidden flex flex-col w-full bg-surface/90 backdrop-blur-md sticky top-0 z-50">
                 <div className="ghana-bar" />
-                <header className="px-4 py-4 flex items-center justify-between text-zinc-400">
+                <header className={`px-4 py-4 flex items-center justify-between text-zinc-400 ${!isMobileMenuOpen ? 'border-b border-surface-border' : ''}`}>
                     <div className="flex items-center gap-3">
-                        <Link href="/" className="flex flex-col h-5 w-7 rounded overflow-hidden flex-shrink-0">
+                        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-1 -ml-1 text-white hover:text-ghana-gold transition-colors">
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                {isMobileMenuOpen ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                )}
+                            </svg>
+                        </button>
+                        <Link href="/" className="flex flex-col h-5 w-7 rounded overflow-hidden flex-shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
                             <div className="flex-1 bg-ghana-red" />
                             <div className="flex-1 bg-ghana-gold flex items-center justify-center">
                                 <div className="w-2 h-2 bg-black" style={{ clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' }} />
                             </div>
                             <div className="flex-1 bg-ghana-green" />
                         </Link>
-                        <h1 className="text-sm font-bold font-syne truncate">Console</h1>
+                        <h1 className="text-sm font-bold font-syne truncate">Hubmap Console</h1>
                     </div>
-                    <button onClick={() => logout()} className="text-ghana-red font-bold text-[10px] uppercase tracking-wider px-2 py-1 rounded border border-ghana-red/30">Sign Out</button>
                 </header>
-                <div className="flex overflow-x-auto no-scrollbar px-4 pb-3 gap-2">
-                    <Link href="/admin" className={`flex-none px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${pathname === '/admin' ? 'bg-ghana-gold text-black' : 'text-zinc-500 bg-surface-card border border-surface-border'}`}>Overview</Link>
-                    <Link href="/admin/pending" className={`flex-none px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${pathname === '/admin/pending' ? 'bg-ghana-gold text-black' : 'text-zinc-500 bg-surface-card border border-surface-border'}`}>Pending ({pendingHubs.length})</Link>
-                    <Link href="/admin/directory" className={`flex-none px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${pathname === '/admin/directory' ? 'bg-ghana-gold text-black' : 'text-zinc-500 bg-surface-card border border-surface-border'}`}>Directory ({allHubs.length})</Link>
-                    <Link href="/admin/filters" className={`flex-none px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${pathname === '/admin/filters' ? 'bg-ghana-gold text-black' : 'text-zinc-500 bg-surface-card border border-surface-border'}`}>Filters</Link>
-                </div>
+                
+                {isMobileMenuOpen && (
+                    <div className="absolute top-full left-0 right-0 bg-surface-card border-b border-surface-border shadow-2xl p-4 flex flex-col gap-2 animate-in slide-in-from-top-2 duration-200">
+                        <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${pathname === '/admin' ? 'bg-ghana-gold text-black shadow-lg shadow-ghana-gold/10' : 'text-zinc-400 hover:text-white hover:bg-surface border border-transparent'}`}>
+                            <span>Overview</span>
+                        </Link>
+                        <Link href="/admin/pending" onClick={() => setIsMobileMenuOpen(false)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${pathname === '/admin/pending' ? 'bg-ghana-gold text-black shadow-lg shadow-ghana-gold/10' : 'text-zinc-400 hover:text-white hover:bg-surface border border-transparent'}`}>
+                            <span>Pending Hubs</span>
+                            {pendingHubs.length > 0 && <span className={`px-2 py-0.5 rounded text-[10px] ${pathname === '/admin/pending' ? 'bg-black/20 text-black' : 'bg-ghana-gold/20 text-ghana-gold'}`}>{pendingHubs.length}</span>}
+                        </Link>
+                        <Link href="/admin/directory" onClick={() => setIsMobileMenuOpen(false)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${pathname === '/admin/directory' ? 'bg-ghana-gold text-black shadow-lg shadow-ghana-gold/10' : 'text-zinc-400 hover:text-white hover:bg-surface border border-transparent'}`}>
+                            <span>Directory</span>
+                            <span className="opacity-50">{allHubs.length}</span>
+                        </Link>
+                        <Link href="/admin/filters" onClick={() => setIsMobileMenuOpen(false)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${pathname === '/admin/filters' ? 'bg-ghana-gold text-black shadow-lg shadow-ghana-gold/10' : 'text-zinc-400 hover:text-white hover:bg-surface border border-transparent'}`}>
+                            <span>Metadata / Filters</span>
+                        </Link>
+                        <Link href="/admin/users" onClick={() => setIsMobileMenuOpen(false)} className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${pathname === '/admin/users' ? 'bg-ghana-gold text-black shadow-lg shadow-ghana-gold/10' : 'text-zinc-400 hover:text-white hover:bg-surface border border-transparent'}`}>
+                            <span>Users Management</span>
+                        </Link>
+                        
+                        <div className="h-px bg-surface-border my-2" />
+                        
+                        <div className="flex flex-col gap-2">
+                            <Link href="/" className="w-full text-center px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-white hover:bg-surface transition-all border border-transparent">
+                                ← Back to Map
+                            </Link>
+                            <button onClick={() => { setIsMobileMenuOpen(false); logout(); }} className="w-full px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-ghana-red hover:bg-ghana-red/10 transition-all border border-ghana-red/20">
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Desktop Sidebar */}
@@ -91,6 +127,9 @@ function AdminSidebar({ children }: { children: React.ReactNode }) {
                         </Link>
                         <Link href="/admin/filters" className={`w-full flex items-center justify-between px-5 py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${pathname === '/admin/filters' ? 'bg-ghana-gold text-black shadow-lg shadow-ghana-gold/10' : 'text-zinc-400 hover:text-white hover:bg-surface'}`}>
                             <span>Metadata / Filters</span>
+                        </Link>
+                        <Link href="/admin/users" className={`w-full flex items-center justify-between px-5 py-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${pathname === '/admin/users' ? 'bg-ghana-gold text-black shadow-lg shadow-ghana-gold/10' : 'text-zinc-400 hover:text-white hover:bg-surface'}`}>
+                            <span>Users Management</span>
                         </Link>
                     </nav>
 

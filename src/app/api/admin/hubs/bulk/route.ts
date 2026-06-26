@@ -14,8 +14,15 @@ export async function POST(req: NextRequest) {
         }
 
         const batch = adminDb.batch();
-        const hubsCollection = adminDb.collection('hubs');
+        const hubsCollection = adminDb.collection('d_hubs');
         
+        // --- TEMPORARY WIPE LOGIC ---
+        const snapshot = await hubsCollection.get();
+        snapshot.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+        // ----------------------------
+
         let validCount = 0;
         let invalidCount = 0;
 

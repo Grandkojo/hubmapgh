@@ -13,7 +13,7 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: 'Missing hub ID' }, { status: 400 });
         }
 
-        const hubRef = adminDb.collection('hubs').doc(id);
+        const hubRef = adminDb.collection('d_hubs').doc(id);
         await hubRef.update({
             verified: !!verified,
             verifiedAt: new Date().toISOString(),
@@ -40,7 +40,7 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: 'Missing hub ID' }, { status: 400 });
         }
 
-        await adminDb.collection('hubs').doc(id).delete();
+        await adminDb.collection('d_hubs').doc(id).delete();
         await adminDb.collection('metadata').doc('filters').set({ lastUpdated: new Date().toISOString() }, { merge: true })
 
         return NextResponse.json({ message: 'Hub deleted successfully' });

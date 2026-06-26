@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     if (cacheStatus && cacheStatus.fromCache) {
       fullHubs = cacheStatus.hubs
     } else {
-      const hubsSnapshot = await adminDb.collection('hubs').where('verified', '==', true).get()
+      const hubsSnapshot = await adminDb.collection('d_hubs').where('verified', '==', true).get()
       fullHubs = hubsSnapshot.docs.map((hubDoc) => ({ id: hubDoc.id, ...hubDoc.data() }))
 
       if (cacheStatus) {

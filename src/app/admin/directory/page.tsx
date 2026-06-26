@@ -32,30 +32,58 @@ export default function DirectoryPage() {
 
         setActionLoading('importing')
         try {
-            const data = await file.arrayBuffer()
-            const workbook = XLSX.read(data, { type: 'array' })
-            const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-            const rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: "" })
+            const fileExtension = file.name.split('.').pop()?.toLowerCase()
+            let mappedHubs: any[] = []
 
-            // Map the data
-            const mappedHubs = rawJson.map((row: any) => ({
-                name: row['Hub Bio'] || row['Hub Name'] || '',
-                description: row['What you do (Bio)'] || row['Description'] || 'No description provided.',
-                city: row['Which city/town is your Hub located'] || row['City'] || '',
-                region: row['Which Region is your Hub located'] || row['Region'] || '',
-                neighborhood: row['Location of Hub'] || row['Neighborhood'] || '',
-                digitalAddress: row['What is the Digital Address of your hub'] || row['Digital Address'] || '',
-                submitterEmail: row['Username'] || row['Submitter Email'] || '',
-                founderName: row['Founder'] || row['Founder Name'] || '',
-                founderEmail: row["Founder's Email"] || row['Founder Email'] || '',
-                founderPhone: row["Founder's Phone number"] || row['Founder Phone'] || '',
-                contact: row["Hub's Contact Number"] || row['Hub Contact Number'] || '',
-                website: row['Website Address'] || row['Website URL'] || '',
-                facebook: row['Facebook Link'] || '',
-                tags: row['Column 1'] ? String(row['Column 1']).split(',').map((t: string) => t.trim()) : [],
-                lat: row['Latitude'] || '',
-                lng: row['Longitude'] || ''
-            }))
+            if (fileExtension === 'json') {
+                const text = await file.text()
+                const jsonData = JSON.parse(text)
+                const sourceArray = Array.isArray(jsonData) ? jsonData : (jsonData.hubs || [])
+                
+                mappedHubs = sourceArray.map((row: any) => ({
+                    name: row.name || row['Hub Bio'] || row['Hub Name'] || '',
+                    description: row.description || row['What you do (Bio)'] || row['Description'] || 'No description provided.',
+                    city: row.city || row['Which city/town is your Hub located'] || row['City'] || '',
+                    region: row.region || row['Which Region is your Hub located'] || row['Region'] || '',
+                    neighborhood: row.neighborhood || row['Location of Hub'] || row['Neighborhood'] || '',
+                    digitalAddress: row.digitalAddress || row['What is the Digital Address of your hub'] || row['Digital Address'] || '',
+                    submitterEmail: row.submitterEmail || row['Username'] || row['Submitter Email'] || '',
+                    founderName: row.founderName || row['Founder'] || row['Founder Name'] || '',
+                    founderEmail: row.founderEmail || row["Founder's Email"] || row['Founder Email'] || '',
+                    founderPhone: row.founderPhone || row["Founder's Phone number"] || row['Founder Phone'] || '',
+                    contact: row.contact || row["Hub's Contact Number"] || row['Hub Contact Number'] || '',
+                    website: row.website || row['Website Address'] || row['Website URL'] || '',
+                    facebook: row.facebook || row['Facebook Link'] || '',
+                    tags: Array.isArray(row.tags) ? row.tags : (row['Column 1'] ? String(row['Column 1']).split(',').map((t: string) => t.trim()) : []),
+                    lat: row.lat || row['Latitude'] || '',
+                    lng: row.lng || row['Longitude'] || ''
+                }))
+            } else {
+                const data = await file.arrayBuffer()
+                const workbook = XLSX.read(data, { type: 'array' })
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+                const rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: "" })
+
+                // Map the data
+                mappedHubs = rawJson.map((row: any) => ({
+                    name: row['Hub Bio'] || row['Hub Name'] || '',
+                    description: row['What you do (Bio)'] || row['Description'] || 'No description provided.',
+                    city: row['Which city/town is your Hub located'] || row['City'] || '',
+                    region: row['Which Region is your Hub located'] || row['Region'] || '',
+                    neighborhood: row['Location of Hub'] || row['Neighborhood'] || '',
+                    digitalAddress: row['What is the Digital Address of your hub'] || row['Digital Address'] || '',
+                    submitterEmail: row['Username'] || row['Submitter Email'] || '',
+                    founderName: row['Founder'] || row['Founder Name'] || '',
+                    founderEmail: row["Founder's Email"] || row['Founder Email'] || '',
+                    founderPhone: row["Founder's Phone number"] || row['Founder Phone'] || '',
+                    contact: row["Hub's Contact Number"] || row['Hub Contact Number'] || '',
+                    website: row['Website Address'] || row['Website URL'] || '',
+                    facebook: row['Facebook Link'] || '',
+                    tags: row['Column 1'] ? String(row['Column 1']).split(',').map((t: string) => t.trim()) : [],
+                    lat: row['Latitude'] || '',
+                    lng: row['Longitude'] || ''
+                }))
+            }
 
             // Validate frontend
             const invalidRows = mappedHubs.filter((h: any) => !h.name || !h.city)
@@ -197,8 +225,8 @@ export default function DirectoryPage() {
                 <h2 className="text-xl sm:text-2xl font-black font-syne uppercase tracking-tight">Ecosystem <span className="text-ghana-gold">Directory</span></h2>
                 <div className="flex items-center gap-3">
                     <label className="cursor-pointer px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-black uppercase tracking-widest text-[10px] sm:text-xs rounded-xl border border-surface-border transition-all">
-                        {actionLoading === 'importing' ? 'Importing...' : 'Bulk Import (.xlsx)'}
-                        <input type="file" accept=".xlsx, .xls, .csv" className="hidden" onChange={handleFileUpload} disabled={actionLoading === 'importing'} />
+                        {actionLoading === 'importing' ? 'Importing...' : 'Bulk Import (.xlsx, .json)'}
+                        <input type="file" accept=".xlsx, .xls, .csv, .json" className="hidden" onChange={handleFileUpload} disabled={actionLoading === 'importing'} />
                     </label>
                     <button onClick={openAddModal} className="px-5 py-2.5 bg-ghana-gold hover:bg-amber-300 text-black font-black uppercase tracking-widest text-[10px] sm:text-xs rounded-xl shadow-lg shadow-ghana-gold/20 transition-all">
                         + Add Hub
@@ -216,7 +244,6 @@ export default function DirectoryPage() {
                         <AdminHubCard
                             key={hub.id}
                             hub={hub}
-                            onApprove={() => {}}
                             onDelete={() => handleDelete(hub.id)}
                             onEdit={() => openEditModal(hub)}
                             loading={actionLoading === hub.id}

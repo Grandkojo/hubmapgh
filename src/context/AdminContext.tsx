@@ -46,7 +46,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
         // Pending Hubs Subscription
         const qPending = query(
-            collection(db, 'hubs'),
+            collection(db, 'd_hubs'),
             where('verified', '==', false),
             orderBy('submittedAt', 'desc')
         )
@@ -59,7 +59,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         })
 
         // All Hubs Subscription
-        const qAll = query(collection(db, 'hubs'), orderBy('name', 'asc'))
+        const qAll = query(collection(db, 'd_hubs'), orderBy('name', 'asc'))
         const unsubAll = onSnapshot(qAll, (snapshot) => {
             setAllHubs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })))
             if (!allLoaded) {

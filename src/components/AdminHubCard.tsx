@@ -1,5 +1,7 @@
 "use client"
 
+import Link from 'next/link'
+
 export default function AdminHubCard({ hub, onApprove, onDelete, onEdit, loading, type }: any) {
     return (
         <div className="bg-surface-card border border-surface-border p-5 sm:p-8 rounded-2xl sm:rounded-[2rem] flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-10 hover:border-ghana-gold/30 transition-all shadow-lg hover:shadow-2xl group">
@@ -25,16 +27,22 @@ export default function AdminHubCard({ hub, onApprove, onDelete, onEdit, loading
                 </div>
             </div>
             <div className="flex items-center flex-wrap gap-2 sm:gap-4 border-t lg:border-t-0 lg:border-l border-surface-border pt-5 sm:pt-8 lg:pt-0 lg:pl-10">
-                {onApprove && (
+                {onApprove && !hub.verified && (
                     <button onClick={onApprove} disabled={loading}
                         className="flex-1 sm:flex-none px-4 sm:px-8 py-2.5 sm:py-3 bg-ghana-green hover:bg-emerald-400 text-black text-xs sm:text-sm font-black uppercase tracking-widest rounded-lg sm:rounded-xl disabled:opacity-50 transition-all shadow-lg shadow-ghana-green/10">
                         Approve
                     </button>
                 )}
-                <button onClick={onEdit}
-                    className="flex-1 sm:flex-none px-4 sm:px-8 py-2.5 sm:py-3 bg-zinc-800 hover:bg-zinc-700 text-white text-xs sm:text-sm font-black uppercase tracking-widest rounded-lg sm:rounded-xl transition-all border border-surface-border shadow-md">
-                    Edit
-                </button>
+                <Link href={`/admin/hub/${hub.id}`}
+                    className="flex-1 sm:flex-none px-4 sm:px-8 py-2.5 sm:py-3 bg-surface-card hover:bg-zinc-800 text-white text-xs sm:text-sm font-black uppercase tracking-widest rounded-lg sm:rounded-xl transition-all border border-surface-border shadow-md text-center">
+                    View
+                </Link>
+                {onEdit && (
+                    <button onClick={onEdit}
+                        className="flex-1 sm:flex-none px-4 sm:px-8 py-2.5 sm:py-3 bg-zinc-800 hover:bg-zinc-700 text-white text-xs sm:text-sm font-black uppercase tracking-widest rounded-lg sm:rounded-xl transition-all border border-surface-border shadow-md">
+                        Edit
+                    </button>
+                )}
                 <button onClick={onDelete} disabled={loading}
                     className="px-4 sm:px-6 py-2.5 sm:py-3 text-ghana-red hover:bg-ghana-red/10 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-lg sm:rounded-xl transition-all border border-ghana-red/20">
                     Delete

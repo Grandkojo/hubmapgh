@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
             founded: new Date().getFullYear(),
         };
 
-        const docRef = await adminDb.collection('hubs').add(hubData);
+        const docRef = await adminDb.collection('d_hubs').add(hubData);
 
         await invalidateServerCache();
 

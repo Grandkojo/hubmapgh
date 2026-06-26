@@ -17,7 +17,7 @@ export async function GET() {
         }
 
         // Refresh needed
-        const querySnapshot = await adminDb.collection('hubs').where('verified', '==', true).get();
+        const querySnapshot = await adminDb.collection('d_hubs').where('verified', '==', true).get();
         const hubs = querySnapshot.docs.map(hubDoc => ({
             id: hubDoc.id,
             ...hubDoc.data()

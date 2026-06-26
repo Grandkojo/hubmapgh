@@ -86,7 +86,6 @@ export default function PendingHubs() {
                             hub={hub}
                             onApprove={() => handleVerify(hub.id, true)}
                             onDelete={() => handleDelete(hub.id)}
-                            onEdit={() => {}} // Not typically edited from pending
                             loading={actionLoading === hub.id}
                             type="pending"
                         />
