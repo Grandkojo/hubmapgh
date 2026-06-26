@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server'
 import { adminAuth } from '@/lib/firebase-admin'
 
-function parseAdminEmails() {
-  const raw = process.env.ADMIN_EMAILS || ''
+function parseEmails(envVar: string) {
+  const raw = process.env[envVar] || ''
   return raw
     .split(',')
     .map((email) => email.trim().toLowerCase())
@@ -11,7 +11,12 @@ function parseAdminEmails() {
 
 export function isSuperAdmin(email: string): boolean {
   if (!email) return false
-  return parseAdminEmails().includes(email.toLowerCase())
+  return parseEmails('SUPER_ADMIN_EMAILS').includes(email.toLowerCase())
+}
+
+export function isEnvAdmin(email: string): boolean {
+  if (!email) return false
+  return parseEmails('ADMIN_EMAILS').includes(email.toLowerCase())
 }
 
 export async function verifyAdminRequest(req: NextRequest) {
@@ -22,13 +27,15 @@ export async function verifyAdminRequest(req: NextRequest) {
     return { ok: false as const, status: 401, error: 'Missing Authorization bearer token' }
   }
 
-    try {
+  try {
     const decoded = await adminAuth.verifyIdToken(token, true)
     const email = (decoded.email || '').toLowerCase()
-    const superAdmin = isSuperAdmin(email)
+    
+    const superAdmin = isSuperAdmin(email) || decoded.super_admin === true
+    const envAdmin = isEnvAdmin(email)
     const hasAdminClaim = decoded.admin === true
 
-    if (!hasAdminClaim && !superAdmin) {
+    if (!hasAdminClaim && !superAdmin && !envAdmin) {
       return { ok: false as const, status: 403, error: 'Forbidden: admin access required' }
     }
 
