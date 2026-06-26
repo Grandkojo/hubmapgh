@@ -15,13 +15,6 @@ export async function POST(req: NextRequest) {
 
         const batch = adminDb.batch();
         const hubsCollection = adminDb.collection('d_hubs');
-        
-        // --- TEMPORARY WIPE LOGIC ---
-        const snapshot = await hubsCollection.get();
-        snapshot.docs.forEach((doc) => {
-            batch.delete(doc.ref);
-        });
-        // ----------------------------
 
         let validCount = 0;
         let invalidCount = 0;
@@ -33,18 +26,21 @@ export async function POST(req: NextRequest) {
                 continue; // Skip invalid entries
             }
 
-            const docRef = hubsCollection.doc(); // Auto-generate ID
+            const docRef = hub.id ? hubsCollection.doc(hub.id) : hubsCollection.doc();
+            
+            // Clean up the object (avoid undefined fields in Firestore)
+            const cleanHub = { ...hub };
+            delete cleanHub.id;
+
             batch.set(docRef, {
-                ...hub,
-                verified: true, // Auto-verify since admin uploaded it
-                submittedAt: new Date().toISOString(),
+                ...cleanHub,
+                verified: true,
                 updatedAt: new Date().toISOString(),
-                // Ensure coordinates structure exists
                 coordinates: {
                     lat: parseFloat(hub.lat) || 0,
                     lng: parseFloat(hub.lng) || 0
                 }
-            });
+            }, { merge: true }); // Upsert
             validCount++;
         }
 
