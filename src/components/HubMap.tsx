@@ -66,7 +66,11 @@ export default function HubMap({ hubs, selectedHub, onSelectHub }: MapProps) {
 
       // Add markers
       hubs.forEach(hub => {
-        const marker = L.marker([hub.coordinates.lat, hub.coordinates.lng], {
+        const lat = Number(hub.coordinates?.lat);
+        const lng = Number(hub.coordinates?.lng);
+        if (!hub.coordinates || isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) return;
+
+        const marker = L.marker([lat, lng], {
           icon: defaultIcon(hub.verified),
         })
           .addTo(map)
@@ -125,6 +129,10 @@ export default function HubMap({ hubs, selectedHub, onSelectHub }: MapProps) {
 
     // Re-add filtered markers
     hubs.forEach(hub => {
+      const lat = Number(hub.coordinates?.lat);
+      const lng = Number(hub.coordinates?.lng);
+      if (!hub.coordinates || isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) return;
+
       const icon = L.divIcon({
         html: `
           <div style="
@@ -142,7 +150,7 @@ export default function HubMap({ hubs, selectedHub, onSelectHub }: MapProps) {
         popupAnchor: [0, -30],
       })
 
-      const marker = L.marker([hub.coordinates.lat, hub.coordinates.lng], { icon })
+      const marker = L.marker([lat, lng], { icon })
         .addTo(map)
         .bindPopup(`
           <div style="font-family: 'DM Sans', sans-serif; min-width: 180px;">
@@ -162,8 +170,13 @@ export default function HubMap({ hubs, selectedHub, onSelectHub }: MapProps) {
     })
 
     // Fit bounds if multiple hubs
-    if (hubs.length > 1) {
-      const bounds = L.latLngBounds(hubs.map(h => [h.coordinates.lat, h.coordinates.lng]))
+    const validHubs = hubs.filter(h => {
+      const lat = Number(h.coordinates?.lat);
+      const lng = Number(h.coordinates?.lng);
+      return h.coordinates && !isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0);
+    });
+    if (validHubs.length > 1) {
+      const bounds = L.latLngBounds(validHubs.map(h => [Number(h.coordinates.lat), Number(h.coordinates.lng)]))
       map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 })
     }
   }, [hubs]) // eslint-disable-line

@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
         // Handle bulk rename if provided
         if (rename) {
             const { type, oldName, newName } = rename;
-            const hubsRef = adminDb.collection('hubs');
+            const hubsRef = adminDb.collection('d_hubs');
             const qActual = type === 'city'
                 ? hubsRef.where('city', '==', oldName)
                 : hubsRef.where('tags', 'array-contains', oldName);

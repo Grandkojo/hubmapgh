@@ -6,7 +6,10 @@ import { invalidateServerCache } from '@/lib/cache';
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { name, city, neighborhood, description, website, contact, tags, coordinates } = body;
+        const { 
+            name, city, neighborhood, description, website, contact, tags, coordinates,
+            submitterEmail, region, digitalAddress, founderName, founderEmail, founderPhone, facebook
+        } = body;
 
         // Basic validation
         if (!name || !city || !description) {
@@ -16,19 +19,26 @@ export async function POST(req: NextRequest) {
         const hubData = {
             name,
             city,
+            region: region || '',
             neighborhood: neighborhood || '',
+            digitalAddress: digitalAddress || '',
             description,
             website: website || '#',
             contact: contact || '',
+            facebook: facebook || '',
+            founderName: founderName || '',
+            founderEmail: founderEmail || '',
+            founderPhone: founderPhone || '',
+            submitterEmail: submitterEmail || '',
             tags: tags || [],
             verified: false,
             submittedAt: FieldValue.serverTimestamp(),
-            submittedBy: 'community',
+            submittedBy: submitterEmail || 'community',
             coordinates: coordinates || { lat: 0, lng: 0 },
             founded: new Date().getFullYear(),
         };
 
-        const docRef = await adminDb.collection('hubs').add(hubData);
+        const docRef = await adminDb.collection('d_hubs').add(hubData);
 
         await invalidateServerCache();
 

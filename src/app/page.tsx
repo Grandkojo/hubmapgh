@@ -135,15 +135,7 @@ export default function HomePage() {
       <header className="border-b border-surface-border bg-surface/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <div className="flex flex-col h-5 w-8 rounded overflow-hidden flex-shrink-0">
-              <div className="flex-1 bg-ghana-red" />
-              <div className="flex-1 bg-ghana-gold flex items-center justify-center">
-                <div className="w-2 h-2 bg-black" style={{
-                  clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
-                }} />
-              </div>
-              <div className="flex-1 bg-ghana-green" />
-            </div>
+            <img src="/hubmap-logo-yellow.png" alt="Hub Map GH Logo" className="h-6 w-6 object-contain" />
             <div className="min-w-0">
               <h1 className="text-sm sm:text-lg font-bold text-white leading-none truncate" style={{ fontFamily: 'var(--font-syne)' }}>
                 Hub Map GH
