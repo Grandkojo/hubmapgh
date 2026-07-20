@@ -35,8 +35,10 @@ export default function SubmitHubPage() {
         founderPhone: '',
         tags: [] as string[],
         lat: '',
-        lng: ''
+        lng: '',
+        logo: ''
     })
+    const [isUploadingLogo, setIsUploadingLogo] = useState(false)
 
     useEffect(() => {
         async function fetchMetadata() {
@@ -122,7 +124,7 @@ export default function SubmitHubPage() {
             if (response.ok) {
                 setShowSuccess(true)
                 setCurrentStep(0);
-                setFormData({ submitterEmail: '', name: '', city: '', region: '', digitalAddress: '', neighborhood: '', description: '', website: '', contact: '', facebook: '', founderName: '', founderEmail: '', founderPhone: '', tags: [], lat: '', lng: '' })
+                setFormData({ submitterEmail: '', name: '', city: '', region: '', digitalAddress: '', neighborhood: '', description: '', website: '', contact: '', facebook: '', founderName: '', founderEmail: '', founderPhone: '', tags: [], lat: '', lng: '', logo: '' })
             } else {
                 setError(data.error || 'Something went wrong')
             }
@@ -289,6 +291,34 @@ export default function SubmitHubPage() {
                                         <input type="url" placeholder="https://facebook.com/..." className="w-full bg-surface border border-surface-border rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-lg font-body focus:border-ghana-gold/50 outline-none transition-all placeholder:text-zinc-700"
                                             value={formData.facebook} onChange={e => setFormData({ ...formData, facebook: e.target.value })} />
                                     </div>
+                                    <div className="space-y-2 sm:space-y-3">
+                                        <label className="text-[10px] sm:text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Logo URL</label>
+                                        <div className="flex gap-2">
+                                            <input type="url" className="flex-1 w-full bg-surface border border-surface-border rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-lg font-body focus:border-ghana-gold outline-none transition-all"
+                                                value={formData.logo || ''} onChange={e => setFormData({ ...formData, logo: e.target.value })} placeholder="https://..." />
+                                            <label className={`cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-3 sm:py-4 rounded-xl sm:rounded-2xl flex items-center justify-center transition-colors ${isUploadingLogo ? 'opacity-50 pointer-events-none' : ''}`}>
+                                                <span className="text-xs font-bold uppercase">{isUploadingLogo ? '...' : 'Upload'}</span>
+                                                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    setIsUploadingLogo(true);
+                                                    const dataForUpload = new FormData();
+                                                    dataForUpload.append('file', file);
+                                                    try {
+                                                        const res = await fetch('/api/upload', { method: 'POST', body: dataForUpload });
+                                                        const data = await res.json();
+                                                        if (data.url) setFormData({ ...formData, logo: data.url });
+                                                    } catch (err) {
+                                                        console.error('Upload failed', err);
+                                                    } finally {
+                                                        setIsUploadingLogo(false);
+                                                    }
+                                                }} />
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-6 sm:gap-8">
                                     <FormMultiSelect label="Tags / Focus Areas" placeholder="Select tags" options={allTags} selected={formData.tags} onChange={tags => setFormData({ ...formData, tags })} />
                                 </div>
                             </div>

@@ -8,9 +8,11 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
     try {
         // Rate Limiting
-        const ip = req.headers.get('x-forwarded-for') || req.ip || 'unknown';
-        if (!apiRateLimiter.check(ip)) {
-            return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+        if (process.env.DISABLE_RATE_LIMIT !== 'true') {
+            const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+            if (!apiRateLimiter.check(ip)) {
+                return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+            }
         }
 
         // Origin Checking
