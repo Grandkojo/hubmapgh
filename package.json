@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.15.0",
+    "cloudinary": "^2.10.0",
     "dotenv": "^17.3.1",
     "firebase": "^10.14.1",
     "firebase-admin": "^13.7.0",

@@ -12,6 +12,7 @@ import * as XLSX from 'xlsx'
 export default function DirectoryPage() {
     const { allHubs, cities, focusAreas } = useAdmin()
     const [actionLoading, setActionLoading] = useState<string | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
     const [confirmModal, setConfirmModal] = useState<{isOpen: boolean, title: string, message: string, type: 'danger'|'success'|'info', onConfirm: () => void}>({isOpen: false, title: '', message: '', type: 'info', onConfirm: () => {}})
 
     // Modal State
@@ -19,6 +20,7 @@ export default function DirectoryPage() {
     const [editForm, setEditForm] = useState<any>(null)
     const [currentStep, setCurrentStep] = useState(0)
     const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({})
+    const [isUploadingLogo, setIsUploadingLogo] = useState(false)
 
     const getAuthHeaders = async () => {
         const token = await auth.currentUser?.getIdToken()
@@ -134,7 +136,7 @@ export default function DirectoryPage() {
 
     const openAddModal = () => {
         setModalConfig({ isOpen: true, mode: 'add', data: null })
-        setEditForm({ submitterEmail: '', name: '', city: '', region: '', digitalAddress: '', neighborhood: '', description: '', website: '', contact: '', facebook: '', founderName: '', founderEmail: '', founderPhone: '', tags: [], lat: '', lng: '' })
+        setEditForm({ submitterEmail: '', name: '', city: '', region: '', digitalAddress: '', neighborhood: '', description: '', website: '', contact: '', facebook: '', founderName: '', founderEmail: '', founderPhone: '', tags: [], lat: '', lng: '', logo: '' })
         setCurrentStep(0)
         setFormErrors({})
     }
@@ -219,6 +221,18 @@ export default function DirectoryPage() {
         }
     }
 
+    const filteredHubs = allHubs.filter(hub => {
+        if (!searchQuery.trim()) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+            hub.name?.toLowerCase().includes(q) ||
+            hub.city?.toLowerCase().includes(q) ||
+            hub.founderName?.toLowerCase().includes(q) ||
+            hub.description?.toLowerCase().includes(q) ||
+            hub.region?.toLowerCase().includes(q)
+        );
+    });
+
     return (
         <section className="space-y-6 sm:space-y-8 animate-in fade-in duration-700">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -234,13 +248,32 @@ export default function DirectoryPage() {
                 </div>
             </div>
 
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input
+                    type="text"
+                    placeholder="Search hubs by name, city, or founder..."
+                    className="w-full bg-surface-card border border-surface-border rounded-xl pl-11 pr-4 py-3 sm:py-4 text-sm font-body focus:border-ghana-gold outline-none transition-colors shadow-inner"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+
             {allHubs.length === 0 ? (
                 <div className="bg-surface-card border border-surface-border p-8 sm:p-12 rounded-3xl text-center space-y-4 shadow-xl">
                     <p className="text-zinc-500 font-body text-xs sm:text-base">No hubs in the directory.</p>
                 </div>
+            ) : filteredHubs.length === 0 ? (
+                <div className="bg-surface-card border border-surface-border p-8 sm:p-12 rounded-3xl text-center space-y-4 shadow-xl">
+                    <p className="text-zinc-500 font-body text-xs sm:text-base">No hubs match your search.</p>
+                </div>
             ) : (
                 <div className="grid gap-4 sm:gap-6">
-                    {allHubs.map(hub => (
+                    {filteredHubs.map(hub => (
                         <AdminHubCard
                             key={hub.id}
                             hub={hub}
@@ -388,6 +421,34 @@ export default function DirectoryPage() {
                                             <input type="url" className="w-full bg-surface border border-surface-border rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-lg font-body focus:border-ghana-gold outline-none transition-all"
                                                 value={editForm.facebook || ''} onChange={e => setEditForm({ ...editForm, facebook: e.target.value })} />
                                         </div>
+                                        <div className="space-y-2 sm:space-y-3">
+                                            <label className="text-[10px] sm:text-[11px] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Logo URL</label>
+                                            <div className="flex gap-2">
+                                                <input type="url" className="flex-1 w-full bg-surface border border-surface-border rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 text-sm sm:text-lg font-body focus:border-ghana-gold outline-none transition-all"
+                                                    value={editForm.logo || ''} onChange={e => setEditForm({ ...editForm, logo: e.target.value })} placeholder="https://..." />
+                                                <label className={`cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-3 sm:py-4 rounded-xl sm:rounded-2xl flex items-center justify-center transition-colors ${isUploadingLogo ? 'opacity-50 pointer-events-none' : ''}`}>
+                                                    <span className="text-xs font-bold uppercase">{isUploadingLogo ? '...' : 'Upload'}</span>
+                                                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+                                                        setIsUploadingLogo(true);
+                                                        const formData = new FormData();
+                                                        formData.append('file', file);
+                                                        try {
+                                                            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                                                            const data = await res.json();
+                                                            if (data.url) setEditForm({ ...editForm, logo: data.url });
+                                                        } catch (err) {
+                                                            console.error('Upload failed', err);
+                                                        } finally {
+                                                            setIsUploadingLogo(false);
+                                                        }
+                                                    }} />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
                                         <FormMultiSelect
                                             label="Tags / Focus Areas"
                                             placeholder="Select tags"

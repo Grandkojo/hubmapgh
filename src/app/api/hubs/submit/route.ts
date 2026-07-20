@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { 
             name, city, neighborhood, description, website, contact, tags, coordinates,
-            submitterEmail, region, digitalAddress, founderName, founderEmail, founderPhone, facebook
+            submitterEmail, region, digitalAddress, founderName, founderEmail, founderPhone, facebook, logo
         } = body;
 
         // Basic validation
@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
             founderEmail: founderEmail || '',
             founderPhone: founderPhone || '',
             submitterEmail: submitterEmail || '',
+            logo: logo || '',
             tags: tags || [],
             verified: false,
             submittedAt: FieldValue.serverTimestamp(),
